@@ -1,27 +1,36 @@
 from flask import Flask, render_template, request, redirect, session, Response
 from database import get_connection
 from werkzeug.security import check_password_hash
-from datetime import timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 import cv2
 import blocker
 import detector
 
 app = Flask(__name__)
-app.secret_key = "secret_key_123"
+app.secret_key = "Group7_netad"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
 
 def save_log(ip, event_type, status):
     conn = get_connection()
     cursor = conn.cursor()
+
+
+    philippines_time = datetime.utcnow() + timedelta(hours=8)
+
     try:
         cursor.execute("""
             INSERT INTO security_logs (ip, event_type, status, created_at)
-            VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
-        """, (ip, event_type, status))
+            VALUES (%s, %s, %s, %s)
+        """, (ip, event_type, status, philippines_time))
+
         conn.commit()
+
     except:
         conn.rollback()
+
     finally:
         conn.close()
 

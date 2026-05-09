@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, session, Response
 from database import get_connection
-from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
 import cv2
 import blocker
 import detector
 import atexit
-import time
 
 app = Flask(__name__)
 app.secret_key = "Group7_netad"
@@ -17,22 +15,25 @@ CCTV_STREAM = "rtsp://username:password@192.168.1.100:554/stream1"
 camera = None
 
 
-def get_camera():
-    cap = cv2.VideoCapture(CCTV_STREAM, cv2.CAP_FFMPEG)
-    time.sleep(2)
-
+def try_open_stream(url):
+    cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
     if cap.isOpened():
         return cap
-
     cap.release()
-    return cv2.VideoCapture(0)
+    return None
 
 
 def init_camera():
     global camera
-    camera = get_camera()
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+    camera = try_open_stream(CCTV_STREAM)
+
+    if camera is None:
+        camera = cv2.VideoCapture(0)
+
+    if camera:
+        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 
 init_camera()
@@ -194,7 +195,7 @@ def generate_frames():
     while True:
         try:
             if camera is None or not camera.isOpened():
-                camera = get_camera()
+                init_camera()
 
             success, frame = camera.read()
 

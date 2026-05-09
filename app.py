@@ -1,47 +1,22 @@
 from flask import Flask, render_template, request, redirect, session, Response
 from database import get_connection
+from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 import cv2
 import blocker
 import detector
-import atexit
 
 app = Flask(__name__)
 app.secret_key = "Group7_netad"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
-CCTV_STREAM = "rtsp://username:password@192.168.1.100:554/stream1"
-
-camera = None
-
-
-def try_open_stream(url):
-    cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
-    if cap.isOpened():
-        return cap
-    cap.release()
-    return None
-
-
-def init_camera():
-    global camera
-
-    camera = try_open_stream(CCTV_STREAM)
-
-    if camera is None:
-        camera = cv2.VideoCapture(0)
-
-    if camera:
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-
-init_camera()
-
 
 def save_log(ip, event_type, status):
     conn = get_connection()
     cursor = conn.cursor()
+
 
     philippines_time = datetime.utcnow() + timedelta(hours=8)
 
@@ -50,9 +25,12 @@ def save_log(ip, event_type, status):
             INSERT INTO security_logs (ip, event_type, status, created_at)
             VALUES (%s, %s, %s, %s)
         """, (ip, event_type, status, philippines_time))
+
         conn.commit()
+
     except:
         conn.rollback()
+
     finally:
         conn.close()
 
@@ -71,24 +49,34 @@ def login():
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT username, password FROM users WHERE username=%s", (username,))
+        cursor.execute(
+            "SELECT username, password FROM users WHERE username=%s",
+            (username,)
+        )
+
         user = cursor.fetchone()
         conn.close()
 
         if user and user[1] == password:
             session.permanent = True
             session["user"] = username
+
             detector.clear_failed_attempts(ip)
+
             save_log(ip, f"Login Success: {username}", "SUCCESS")
             return redirect("/dashboard")
+
         else:
             save_log(ip, f"Login Failed: {username}", "FAILED")
+
             detector.register_failed_attempt(ip)
 
             if detector.detect_attack(ip):
                 blocker.block_ip(ip, "Brute force detected")
+
                 save_log(ip, "Brute Force Detected", "ALERT")
                 save_log(ip, "IP BLOCKED", "BLOCKED")
+
                 return "Security Alert: IP Blocked.", 403
 
             return "Invalid login"
@@ -189,32 +177,24 @@ def analytics():
     )
 
 
+camera = cv2.VideoCapture(0)
+camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+
 def generate_frames():
-    global camera
-
     while True:
-        try:
-            if camera is None or not camera.isOpened():
-                init_camera()
-
-            success, frame = camera.read()
-
-            if not success:
-                camera.release()
-                camera = None
-                continue
-
-            _, buffer = cv2.imencode('.jpg', frame)
-            frame_bytes = buffer.tobytes()
-
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' +
-                   frame_bytes +
-                   b'\r\n')
-
-        except:
-            camera = None
+        success, frame = camera.read()
+        if not success:
             continue
+
+        _, buffer = cv2.imencode('.jpg', frame)
+        frame_bytes = buffer.tobytes()
+
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' +
+               frame_bytes +
+               b'\r\n')
 
 
 @app.route("/video_feed")
@@ -232,11 +212,11 @@ def logout():
     return redirect("/")
 
 
+import atexit
+
 @atexit.register
 def release_camera():
-    global camera
-    if camera:
-        camera.release()
+    camera.release()
 
 
 if __name__ == "__main__":

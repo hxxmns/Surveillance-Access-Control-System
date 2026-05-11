@@ -1250,3 +1250,15 @@ body{
         width:100%;
     }
 }
+
+.alert-info{
+    flex:1;
+    min-width:0;
+}
+
+.alert-info h4{
+    word-break:break-word;
+    overflow-wrap:anywhere;
+    white-space:normal;
+    line-height:1.4;
+}

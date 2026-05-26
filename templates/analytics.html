@@ -106,120 +106,146 @@
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Shared Colors
+    // Shared Colors (Stealth Mode Palette)
     const colorSuccess = "#3fb950"; // Green
     const colorFailed = "#f85149";  // Red
     const colorBlocked = "#d29922"; // Yellow
     const colorGrid = "#30363d";
-    const colorText = "#8b949e";
+    const colorText = "#888888";
 
     // Chart Defaults for Dark Theme
     Chart.defaults.color = colorText;
     Chart.defaults.font.family = "'Inter', sans-serif";
 
-    // 1. MAIN LINE CHART (Login Activity)
+    // --- Simulated Data for Different Timeframes ---
+    const chartData = {
+        weekly: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            successLine: [15, 2, 1, 0, 1, 1, 1],
+            failedLine: [56, 3, 4, 5, 8, 9, 7],
+            totals: [21, 92, 0] // Success, Failed, Blocked
+        },
+        monthly: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            successLine: [45, 32, 50, 41],
+            failedLine: [120, 85, 90, 110],
+            totals: [168, 405, 12]
+        },
+        'all time': {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            successLine: [300, 450, 400, 520, 480, 600],
+            failedLine: [800, 950, 820, 1100, 900, 1200],
+            totals: [2750, 5770, 85]
+        }
+    };
+
+    // 1. INITIALIZE CHARTS
+    let lineChart, donutChart, barChart;
+
     const lineCtx = document.getElementById('loginLineChart');
     if(lineCtx) {
-        new Chart(lineCtx, {
+        lineChart = new Chart(lineCtx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: chartData.weekly.labels,
                 datasets: [
                     {
                         label: 'Successful Logins',
-                        data: [15, 2, 1, 0, 1, 1, 1], // Simulated historical data
+                        data: chartData.weekly.successLine,
                         borderColor: colorSuccess,
                         backgroundColor: 'rgba(63, 185, 80, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: colorSuccess
+                        borderWidth: 2, tension: 0.4, fill: true, pointBackgroundColor: colorSuccess
                     },
                     {
                         label: 'Failed Attempts',
-                        data: [56, 3, 4, 5, 8, 9, 7], // Simulated historical data
+                        data: chartData.weekly.failedLine,
                         borderColor: colorFailed,
                         backgroundColor: 'rgba(248, 81, 73, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: colorFailed
+                        borderWidth: 2, tension: 0.4, fill: true, pointBackgroundColor: colorFailed
                     }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12 } }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: colorGrid } },
-                    x: { grid: { color: colorGrid } }
-                }
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+                scales: { y: { beginAtZero: true, grid: { color: colorGrid } }, x: { grid: { color: colorGrid } } }
             }
         });
     }
 
-    // Pass backend vars to the bottom charts
-    const successCount = Number("{{ success_count | default(108) }}");
-    const failedCount = Number("{{ failed_count | default(392) }}");
-    const blockedCount = Number("{{ blocked_count | default(0) }}");
-
-    // 2. DOUGHNUT CHART (Success vs Failed)
     const donutCtx = document.getElementById('doughnutChart');
     if(donutCtx) {
-        new Chart(donutCtx, {
+        donutChart = new Chart(donutCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Success', 'Failed'],
                 datasets: [{
-                    data: [successCount, failedCount],
+                    data: [chartData.weekly.totals[0], chartData.weekly.totals[1]],
                     backgroundColor: [colorSuccess, colorFailed],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    borderWidth: 0, hoverOffset: 4
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '55%',
-                plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12 } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } } }
         });
     }
 
-    // 3. BAR CHART (Event Breakdown)
     const barCtx = document.getElementById('barChart');
     if(barCtx) {
-        new Chart(barCtx, {
+        barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: ['Success', 'Failed', 'Blocked'],
                 datasets: [{
                     label: 'Total Events',
-                    data: [successCount, failedCount, blockedCount],
+                    data: chartData.weekly.totals,
                     backgroundColor: [colorSuccess, colorFailed, colorBlocked],
-                    borderRadius: 4,
-                    barPercentage: 0.6
+                    borderRadius: 4, barPercentage: 0.6
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: colorGrid } },
-                    x: { grid: { display: false } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: colorGrid } }, x: { grid: { display: false } } } }
         });
     }
+
+    // 2. TAB CLICK LOGIC
+    const tabs = document.querySelectorAll('.timeframe-tabs .tab');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all, add to clicked
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            // Get timeframe from button text (e.g., "Weekly" -> "weekly")
+            const timeframe = this.textContent.trim().toLowerCase();
+            const newData = chartData[timeframe];
+
+            if (newData) {
+                // Update Line Chart
+                if(lineChart) {
+                    lineChart.data.labels = newData.labels;
+                    lineChart.data.datasets[0].data = newData.successLine;
+                    lineChart.data.datasets[1].data = newData.failedLine;
+                    lineChart.update();
+                }
+
+                // Update Donut Chart
+                if(donutChart) {
+                    donutChart.data.datasets[0].data = [newData.totals[0], newData.totals[1]];
+                    donutChart.update();
+                }
+
+                // Update Bar Chart
+                if(barChart) {
+                    barChart.data.datasets[0].data = newData.totals;
+                    barChart.update();
+                }
+
+                // Update the Top Stat Numbers dynamically
+                document.querySelectorAll('.stat-card h1')[0].textContent = newData.totals[0];
+                document.querySelectorAll('.stat-card h1')[1].textContent = newData.totals[1];
+                document.querySelectorAll('.stat-card h1')[2].textContent = newData.totals[2];
+            }
+        });
+    });
 });
 </script>
-</body>
-</html>

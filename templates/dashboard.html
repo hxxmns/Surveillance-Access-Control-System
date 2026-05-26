@@ -10,29 +10,21 @@
 <body>
 
 <div class="dashboard">
-
     <aside class="sidebar">
         <div class="logo-area">
             <h1>CYBER<span class="logo-accent">WATCH</span></h1>
         </div>
-        
-        <div class="sidebar-clock">
-            <div id="live-clock"></div>
-        </div>
-
+        <div class="sidebar-clock"><div id="live-clock"></div></div>
         <nav>
             <a href="/dashboard" class="active">Dashboard</a>
             <a href="/live-cctv">Live CCTV</a>
             <a href="/threat-logs">Threat Logs</a>
             <a href="/analytics">Analytics</a>
         </nav>
-        <div class="sidebar-footer">
-            <a href="/logout">Logout</a>
-        </div>
+        <div class="sidebar-footer"><a href="/logout">Logout</a></div>
     </aside>
 
     <main class="main-content">
-        
         <div class="system-nominal-banner">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             <span>All systems nominal — no active threats detected</span>
@@ -75,7 +67,7 @@
                 <div class="camera-wrapper main-feed">
                     <img src="{{ url_for('video_feed') }}" class="camera-feed" alt="Primary Feed">
                     <div class="feed-overlay">
-                        <span class="feed-label">CAM-01 •</span>
+                        <span class="feed-label">CAM-01 • Entrance</span>
                     </div>
                 </div>
             </div>
@@ -115,7 +107,6 @@
         </section>
     </main>
 </div>
-
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 </html>

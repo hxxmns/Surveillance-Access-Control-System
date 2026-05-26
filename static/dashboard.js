@@ -31,7 +31,6 @@ function rotateStatus() {
 }
 setInterval(rotateStatus, 5000);
 
-
 /* --- AUTO REFRESH ALERTS --- */
 setInterval(() => {
     fetch(window.location.href)
@@ -48,7 +47,6 @@ setInterval(() => {
         })
         .catch(err => console.error("Error fetching alerts:", err));
 }, 5000);
-
 
 /* --- LIVE CAMERA STATUS --- */
 function checkCameraFeed() {
@@ -72,7 +70,7 @@ function checkCameraFeed() {
 }
 checkCameraFeed();
 
-/* --- CAMERA THUMBNAIL SWITCHER (UI Polish) --- */
+/* --- CAMERA THUMBNAIL SWITCHER --- */
 document.querySelectorAll('.thumb').forEach(thumb => {
     thumb.addEventListener('click', function() {
         document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
@@ -84,14 +82,13 @@ document.querySelectorAll('.thumb').forEach(thumb => {
     });
 });
 
-
 /* --- THREAT ALERT SOUND & NOTIFICATION --- */
 let previousFailedCount = 0;
 
 function playThreatAlert() {
     const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
     audio.volume = 0.3;
-    audio.play().catch(e => console.log("Audio play blocked by browser interaction policy"));
+    audio.play().catch(e => console.log("Audio blocked by browser policy"));
 }
 
 function showNotification(message) {
@@ -108,7 +105,6 @@ function showNotification(message) {
 }
 
 function monitorThreats() {
-    // Looks for the red stat card's h1 specifically
     const failedCard = document.querySelector(".stat-card.border-red h1");
     if (!failedCard) return;
 

@@ -6,6 +6,37 @@
     <title>Cyber Security Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    .blocked-banner {
+        background: rgba(248, 81, 73, 0.15);
+        border: 1px solid rgba(248, 81, 73, 0.6);
+        color: #f85149;
+        padding: 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .block-reason {
+        font-size: 12px;
+        font-weight: 400;
+        margin-top: 6px;
+        color: #ff8080;
+    }
+    .warning-banner {
+        background: rgba(210, 153, 34, 0.12);
+        border: 1px solid rgba(210, 153, 34, 0.5);
+        color: #d29922;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: -10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    </style>
 </head>
 <body class="login-page">
 
@@ -28,8 +59,17 @@
         </div>
 
         <form method="POST">
-            {% if error %}
-                <div class="error-banner">⚠ {{ error }}</div>
+            {% if blocked %}
+            <div class="error-banner blocked-banner">
+                🚫 Access Permanently Denied
+                <div class="block-reason">{{ block_reason }}</div>
+            </div>
+
+            {% elif error %}
+            <div class="error-banner">⚠ {{ error }}</div>
+            {% if warning %}
+            <div class="warning-banner">{{ warning }}</div>
+            {% endif %}
             {% endif %}
 
             <div class="input-group">

@@ -1,13 +1,11 @@
-/* --- LIVE CLOCK --- */
+/* --- REVISED LIVE CLOCK (Matches Screenshot) --- */
 function updateClock() {
     const clock = document.getElementById("live-clock");
     if (clock) {
         const now = new Date();
-        const date = now.toLocaleDateString(undefined, {
-            year: 'numeric', month: 'short', day: 'numeric'
-        });
-        const time = now.toLocaleTimeString();
-        clock.innerHTML = `${date} | ${time}`;
+        const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        clock.innerHTML = `${dateStr} | ${timeStr}`;
     }
 }
 setInterval(updateClock, 1000);
@@ -31,7 +29,7 @@ function rotateStatus() {
 }
 setInterval(rotateStatus, 5000);
 
-/* --- AUTO REFRESH ALERTS --- */
+/* --- AUTO REFRESH ALERTS (Dashboard Only) --- */
 setInterval(() => {
     fetch(window.location.href)
         .then(response => response.text())
@@ -45,7 +43,7 @@ setInterval(() => {
                 currentAlerts.innerHTML = newAlerts.innerHTML;
             }
         })
-        .catch(err => console.error("Error fetching alerts:", err));
+        .catch(err => console.log("Refresh skipped or failed."));
 }, 5000);
 
 /* --- LIVE CAMERA STATUS --- */
@@ -105,3 +103,37 @@ function monitorThreats() {
     previousFailedCount = currentFailed;
 }
 setInterval(monitorThreats, 4000);
+
+/* --- THREAT LOGS FILTERING LOGIC --- */
+document.addEventListener("DOMContentLoaded", () => {
+    const filterPills = document.querySelectorAll('.filter-pill');
+    const logRows = document.querySelectorAll('.log-row');
+
+    if(filterPills.length > 0) {
+        filterPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                // Remove active class from all pills
+                filterPills.forEach(p => p.classList.remove('active'));
+                // Add active class to clicked pill
+                pill.classList.add('active');
+                
+                const filterValue = pill.getAttribute('data-filter');
+                let visibleCount = 0;
+
+                // Show/Hide rows based on status
+                logRows.forEach(row => {
+                    if (filterValue === 'all' || row.getAttribute('data-status') === filterValue) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Update results count
+                const countText = document.querySelector('.results-count');
+                if(countText) countText.textContent = `${visibleCount} results`;
+            });
+        });
+    }
+});

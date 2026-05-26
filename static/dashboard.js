@@ -104,32 +104,60 @@ function monitorThreats() {
 }
 setInterval(monitorThreats, 4000);
 
-/* --- THREAT LOGS FILTERING LOGIC --- */
+/* --- THREAT LOGS FILTERING & SEARCH LOGIC --- */
 document.addEventListener("DOMContentLoaded", () => {
     const filterPills = document.querySelectorAll('.filter-pill');
     const logRows = document.querySelectorAll('.log-row');
+    const searchInput = document.getElementById('logSearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const countText = document.querySelector('.results-count');
 
-    if(filterPills.length > 0) {
+    if (logRows.length === 0) return;
+
+    let currentStatusFilter = 'all';
+    let currentSearchQuery = '';
+    function applyFilters() {
+        let visibleCount = 0;
+
+        logRows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            const rowText = row.textContent.toLowerCase();
+
+            const matchesStatus = (currentStatusFilter === 'all' || rowStatus === currentStatusFilter);
+            const matchesSearch = (currentSearchQuery === '' || rowText.includes(currentSearchQuery));
+
+            if (matchesStatus && matchesSearch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (countText) countText.textContent = `${visibleCount} results`;
+    }
+
+    if (filterPills.length > 0) {
         filterPills.forEach(pill => {
             pill.addEventListener('click', () => {
                 filterPills.forEach(p => p.classList.remove('active'));
                 pill.classList.add('active');
                 
-                const filterValue = pill.getAttribute('data-filter');
-                let visibleCount = 0;
-
-                logRows.forEach(row => {
-                    if (filterValue === 'all' || row.getAttribute('data-status') === filterValue) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                const countText = document.querySelector('.results-count');
-                if(countText) countText.textContent = `${visibleCount} results`;
+                currentStatusFilter = pill.getAttribute('data-filter');
+                applyFilters();
             });
+        });
+    }
+
+    if (searchInput && searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            currentSearchQuery = searchInput.value.toLowerCase().trim();
+            applyFilters();
+        });
+
+        searchInput.addEventListener('input', () => {
+            currentSearchQuery = searchInput.value.toLowerCase().trim();
+            applyFilters();
         });
     }
 });

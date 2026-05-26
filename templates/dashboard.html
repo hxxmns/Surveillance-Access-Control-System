@@ -65,4 +65,98 @@
                 <p class="trend neutral">— Unchanged</p>
             </div>
 
-            <div
+            <div class="stat-card border-green">
+                <div class="stat-header">
+                    <h3>System health</h3>
+                </div>
+                <h1 class="green-text">99.9%</h1>
+                <p class="trend positive">↑ Optimal</p>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+
+            <div class="camera-section">
+                <div class="section-header">
+                    <div class="header-left">
+                        <h3>LIVE SURVEILLANCE</h3>
+                        <span class="status-dot green"></span>
+                        <span class="status-text green-text">Camera online</span>
+                    </div>
+                    <div class="live-indicator"><span class="dot red"></span> Live</div>
+                </div>
+
+                <div class="camera-thumbnails" style="margin-bottom: 15px;">
+                    <div class="thumb active">
+                        <span class="status-dot green"></span>
+                        <p>CAM-02 • Hall</p>
+                    </div>
+                    <div class="thumb">
+                        <span class="status-dot green"></span>
+                        <p>CAM-03 • Parking</p>
+                    </div>
+                </div>
+
+                <div class="camera-wrapper main-feed">
+                    <img src="{{ url_for('video_feed') }}" class="camera-feed" alt="Primary Feed">
+                    <div class="feed-overlay">
+                        <span class="feed-label">CAM-01 • Entrance</span>
+                        <span class="feed-time">18:00:52</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alerts-section">
+                <div class="section-header">
+                    <h3>THREAT ACTIVITY</h3>
+                    <a href="/threat-logs" class="view-all">View all →</a>
+                </div>
+
+                <div class="activity-graph">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar high"></div>
+                    <div class="bar medium"></div>
+                </div>
+
+                <div class="alerts-list">
+                    {% for log in recent_alerts %}
+                    <div class="alert-item">
+                        <div class="status-indicator {{ 'green' if log[2] == 'SUCCESS' else 'yellow' }}"></div>
+                        <div class="alert-content">
+                            <div class="alert-title-row">
+                                <h4>{{ log[1] }}</h4>
+                                <span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'warn' }}">
+                                    {{ 'OK' if log[2] == 'SUCCESS' else 'Warn' }}
+                                </span>
+                            </div>
+                            <p class="alert-sub">{{ user | default('admin') }} • {{ log[0] }}</p>
+                        </div>
+                        <div class="alert-time-col">
+                            <span>{{ log[3].strftime('%H:%M:%S') if log[3] else '18:00:52' }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="alert-item">
+                        <div class="status-indicator red"></div>
+                        <div class="alert-content">
+                            <div class="alert-title-row">
+                                <h4>Device blocked</h4>
+                                <span class="badge critical">Critical</span>
+                            </div>
+                            <p class="alert-sub">MAC: 00:1A:2B:3C:4D</p>
+                        </div>
+                        <div class="alert-time-col">
+                            <span>May 23</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

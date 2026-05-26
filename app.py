@@ -58,7 +58,12 @@ def login():
     device_id = get_device_id()
 
     if blocker.is_blocked(device_id):
-        return "Access Denied: Your device is permanently blocked.", 403
+        block_reason = blocker.get_block_reason(device_id)
+        return render_template(
+            "login.html",
+            blocked=True,
+            block_reason=block_reason or "Your device has been permanently blocked."
+        ), 403
 
     if request.method == "POST":
 
@@ -117,7 +122,7 @@ def login():
 
             blocker.block_device(
                 device_id,
-                "Brute force detected"
+                "Too many failed login attempts (brute force detected)"
             )
 
             save_log(
@@ -132,12 +137,24 @@ def login():
                 "BLOCKED"
             )
 
-            return "Security Alert: Device Blocked.", 403
+            return render_template(
+                "login.html",
+                blocked=True,
+                block_reason="Too many failed login attempts — your device has been permanently blocked."
+            ), 403
+
+        failed_count = detector.get_failed_count(device_id)
+        attempts_left = 5 - failed_count
+        warning = None
+
+        if attempts_left <= 2:
+            warning = f"⚠ Warning: {attempts_left} attempt{'s' if attempts_left != 1 else ''} left before your device is permanently blocked."
 
         response = make_response(
             render_template(
                 "login.html",
-                error="Invalid username or password."
+                error="Invalid username or password.",
+                warning=warning
             )
         )
 

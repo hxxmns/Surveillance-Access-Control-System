@@ -31,9 +31,7 @@
 
         <form method="POST">
             {% if error %}
-                <div class="error-banner">
-                    ⚠ {{ error }}
-                </div>
+                <div class="error-banner">⚠ {{ error }}</div>
             {% endif %}
 
             <div class="input-group">
@@ -46,9 +44,7 @@
                 <input type="password" name="password" placeholder="Enter password" required>
             </div>
 
-            <button type="submit" class="btn-primary">
-                Access System →
-            </button>
+            <button type="submit" class="btn-primary">Access System →</button>
         </form>
     </div>
 </div>

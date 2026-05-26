@@ -1,4 +1,4 @@
-/* --- REVISED LIVE CLOCK (Matches Screenshot) --- */
+/* --- REVISED LIVE CLOCK --- */
 function updateClock() {
     const clock = document.getElementById("live-clock");
     if (clock) {

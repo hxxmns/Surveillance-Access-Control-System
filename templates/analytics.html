@@ -50,17 +50,17 @@
         <section class="analytics-stats-grid">
             <div class="stat-card">
                 <h3>Successful Logins</h3>
-                <h1 class="cyan-text">{{ success_count | default('108') }}</h1>
+                <h1 class="accent-text">{{ success_count | default('108') }}</h1>
                 <p class="trend positive">▲ All time</p>
             </div>
             <div class="stat-card">
                 <h3>Failed Attempts</h3>
-                <h1 class="cyan-text">{{ failed_count | default('392') }}</h1>
-                <p class="trend negative">Δ All time</p>
+                <h1 class="accent-text">{{ failed_count | default('392') }}</h1>
+                <p class="trend negative">▼ All time</p>
             </div>
             <div class="stat-card">
                 <h3>Blocked Devices</h3>
-                <h1 class="cyan-text">{{ blocked_count | default('0') }}</h1>
+                <h1 class="accent-text">{{ blocked_count | default('0') }}</h1>
                 <p class="trend warning">— Total blocked</p>
             </div>
         </section>
@@ -106,24 +106,23 @@
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Shared Colors (Stealth Mode Palette)
-    const colorSuccess = "#3fb950"; // Green
-    const colorFailed = "#f85149";  // Red
-    const colorBlocked = "#d29922"; // Yellow
+    // Colors
+    const colorSuccess = "#3fb950"; 
+    const colorFailed = "#f85149";  
+    const colorBlocked = "#d29922"; 
     const colorGrid = "#30363d";
     const colorText = "#888888";
 
-    // Chart Defaults for Dark Theme
     Chart.defaults.color = colorText;
     Chart.defaults.font.family = "'Inter', sans-serif";
 
-    // --- Simulated Data for Different Timeframes ---
+    // Simulated Data
     const chartData = {
         weekly: {
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             successLine: [15, 2, 1, 0, 1, 1, 1],
             failedLine: [56, 3, 4, 5, 8, 9, 7],
-            totals: [21, 92, 0] // Success, Failed, Blocked
+            totals: [21, 92, 0] 
         },
         monthly: {
             labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
@@ -139,9 +138,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // 1. INITIALIZE CHARTS
     let lineChart, donutChart, barChart;
 
+    // 1. LINE CHART (Fixed Legends)
     const lineCtx = document.getElementById('loginLineChart');
     if(lineCtx) {
         lineChart = new Chart(lineCtx, {
@@ -167,12 +166,43 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+                plugins: { 
+                    legend: { 
+                        position: 'top', 
+                        labels: { 
+                            boxWidth: 14,
+                            // Custom UI Checkbox Logic
+                            generateLabels: function(chart) {
+                                return chart.data.datasets.map((dataset, i) => {
+                                    const isVisible = chart.isDatasetVisible(i);
+                                    return {
+                                        text: dataset.label,
+                                        fillStyle: isVisible ? dataset.borderColor : 'transparent',
+                                        strokeStyle: dataset.borderColor,
+                                        lineWidth: 2,
+                                        hidden: !isVisible,
+                                        textDecoration: 'none', // Removes strikethrough
+                                        datasetIndex: i
+                                    };
+                                });
+                            }
+                        },
+                        // Click logic to toggle
+                        onClick: function(e, legendItem, legend) {
+                            const index = legendItem.datasetIndex;
+                            const chart = legend.chart;
+                            if (chart.isDatasetVisible(index)) { chart.hide(index); } 
+                            else { chart.show(index); }
+                            chart.update();
+                        }
+                    } 
+                },
                 scales: { y: { beginAtZero: true, grid: { color: colorGrid } }, x: { grid: { color: colorGrid } } }
             }
         });
     }
 
+    // 2. DOUGHNUT CHART (Fixed Legends)
     const donutCtx = document.getElementById('doughnutChart');
     if(donutCtx) {
         donutChart = new Chart(donutCtx, {
@@ -185,10 +215,48 @@ document.addEventListener("DOMContentLoaded", function() {
                     borderWidth: 0, hoverOffset: 4
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } } }
+            options: { 
+                responsive: true, maintainAspectRatio: false, cutout: '55%', 
+                plugins: { 
+                    legend: { 
+                        position: 'top', 
+                        labels: { 
+                            boxWidth: 14,
+                            // Custom UI Checkbox Logic for Doughnut
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.labels.map((label, i) => {
+                                        const meta = chart.getDatasetMeta(0);
+                                        const style = meta.controller.getStyle(i);
+                                        const isHidden = meta.data[i].hidden;
+                                        return {
+                                            text: label,
+                                            fillStyle: isHidden ? 'transparent' : style.backgroundColor,
+                                            strokeStyle: style.backgroundColor,
+                                            lineWidth: 2,
+                                            hidden: isHidden,
+                                            textDecoration: 'none', // Removes strikethrough
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        },
+                        onClick: function(e, legendItem, legend) {
+                            const index = legendItem.index;
+                            const chart = legend.chart;
+                            chart.toggleDataVisibility(index);
+                            chart.update();
+                        }
+                    } 
+                } 
+            }
         });
     }
 
+    // 3. BAR CHART
     const barCtx = document.getElementById('barChart');
     if(barCtx) {
         barChart = new Chart(barCtx, {
@@ -206,41 +274,32 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 2. TAB CLICK LOGIC
+    // TAB CLICK LOGIC
     const tabs = document.querySelectorAll('.timeframe-tabs .tab');
-    
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-            // Remove active class from all, add to clicked
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
 
-            // Get timeframe from button text (e.g., "Weekly" -> "weekly")
             const timeframe = this.textContent.trim().toLowerCase();
             const newData = chartData[timeframe];
 
             if (newData) {
-                // Update Line Chart
                 if(lineChart) {
                     lineChart.data.labels = newData.labels;
                     lineChart.data.datasets[0].data = newData.successLine;
                     lineChart.data.datasets[1].data = newData.failedLine;
                     lineChart.update();
                 }
-
-                // Update Donut Chart
                 if(donutChart) {
                     donutChart.data.datasets[0].data = [newData.totals[0], newData.totals[1]];
                     donutChart.update();
                 }
-
-                // Update Bar Chart
                 if(barChart) {
                     barChart.data.datasets[0].data = newData.totals;
                     barChart.update();
                 }
 
-                // Update the Top Stat Numbers dynamically
                 document.querySelectorAll('.stat-card h1')[0].textContent = newData.totals[0];
                 document.querySelectorAll('.stat-card h1')[1].textContent = newData.totals[1];
                 document.querySelectorAll('.stat-card h1')[2].textContent = newData.totals[2];
@@ -249,3 +308,5 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+</body>
+</html>

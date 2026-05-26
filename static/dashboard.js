@@ -116,13 +116,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentStatusFilter = 'all';
     let currentSearchQuery = '';
+
     function applyFilters() {
         let visibleCount = 0;
-
         logRows.forEach(row => {
             const rowStatus = row.getAttribute('data-status');
             const rowText = row.textContent.toLowerCase();
-
             const matchesStatus = (currentStatusFilter === 'all' || rowStatus === currentStatusFilter);
             const matchesSearch = (currentSearchQuery === '' || rowText.includes(currentSearchQuery));
 
@@ -133,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 row.style.display = 'none';
             }
         });
-
         if (countText) countText.textContent = `${visibleCount} results`;
     }
 
@@ -142,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
             pill.addEventListener('click', () => {
                 filterPills.forEach(p => p.classList.remove('active'));
                 pill.classList.add('active');
-                
                 currentStatusFilter = pill.getAttribute('data-filter');
                 applyFilters();
             });
@@ -154,7 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
             currentSearchQuery = searchInput.value.toLowerCase().trim();
             applyFilters();
         });
-
         searchInput.addEventListener('input', () => {
             currentSearchQuery = searchInput.value.toLowerCase().trim();
             applyFilters();

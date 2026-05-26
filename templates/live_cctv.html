@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live CCTV</title>
+    <title>Live CCTV - Cyber Watch</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -13,9 +13,13 @@
 
     <aside class="sidebar">
         <div class="logo-area">
-            <h1>CYBER</h1>
-            <h1 class="logo-accent">WATCH</h1>
+            <h1>CYBER<span class="logo-accent">WATCH</span></h1>
         </div>
+        
+        <div class="sidebar-clock">
+            <div id="live-clock"></div>
+        </div>
+
         <nav>
             <a href="/dashboard">Dashboard</a>
             <a href="/live-cctv" class="active">Live CCTV</a>
@@ -29,38 +33,39 @@
 
     <main class="main-content">
 
-        <div class="topbar">
+        <header class="topbar">
             <div class="topbar-left">
-                <h2>Live CCTV Monitoring</h2>
-                <p id="system-status">Real-time AI surveillance and security monitoring system</p>
+                <h2 class="page-title">Live CCTV Monitoring</h2>
+                <p class="text-muted">Real-time AI surveillance and security monitoring system</p>
             </div>
             <div class="topbar-right">
-                <div id="live-clock"></div>
                 <div class="profile-box">
-                    <div class="status-dot"></div>
-                    <span>{{ user }}</span>
+                    <span class="status-dot green"></span>
+                    <span>{{ user | default('admin') }}</span>
                 </div>
             </div>
-        </div>
+        </header>
 
         <div class="cctv-grid">
-            <div class="cctv-card">
-                <div class="feed-topbar">
-                    <h3>CAMERA 01</h3>
-                    <div class="live-badge">● LIVE</div>
+            <div class="cctv-card camera-section">
+                <div class="section-header">
+                    <div class="header-left">
+                        <h3>CAMERA 01</h3>
+                    </div>
+                    <div class="live-indicator"><span class="dot red"></span> Live</div>
                 </div>
-                <video id="localVideo" autoplay muted playsinline class="camera-feed"></video>
-                <p id="cam-status" style="color:#94a3b8; margin-top:10px; font-size:13px;"></p>
+                <video id="localVideo" autoplay muted playsinline class="camera-feed" style="border-radius: 8px; width: 100%; height: auto; border: 1px solid var(--border-color);"></video>
+                <p id="cam-status" style="color:var(--text-muted); margin-top:10px; font-size:13px;"></p>
             </div>
 
             <div class="camera-side-panel">
                 <div class="camera-info-card">
                     <h3>Camera Status</h3>
-                    <p id="status-text">CONNECTING</p>
+                    <p id="status-text" class="green-text">CONNECTING</p>
                 </div>
                 <div class="camera-info-card">
                     <h3>AI Detection</h3>
-                    <p>ACTIVE</p>
+                    <p class="green-text">ACTIVE</p>
                 </div>
                 <div class="camera-info-card">
                     <h3>Resolution</h3>
@@ -76,13 +81,8 @@
     </main>
 </div>
 
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 <script>
-function updateClock() {
-    document.getElementById("live-clock").innerHTML = new Date().toLocaleString();
-}
-setInterval(updateClock, 1000);
-updateClock();
-
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -95,11 +95,10 @@ async function startCamera() {
     } catch (err) {
         document.getElementById("cam-status").textContent = "Camera access denied or unavailable.";
         document.getElementById("status-text").textContent = "OFFLINE";
+        document.getElementById("status-text").className = "red-text";
     }
 }
-
 startCamera();
 </script>
-
 </body>
 </html>

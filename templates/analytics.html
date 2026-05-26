@@ -36,8 +36,8 @@
 
         <header class="topbar">
             <div class="topbar-left">
-                <h2 class="page-title">Analytics Engine</h2>
-                <p class="text-muted">Processing Historical Threat Data</p>
+                <h2 class="page-title">Analytics</h2>
+                <p class="text-muted">Monitoring CCTV Channels</p>
             </div>
             <div class="topbar-right">
                 <div class="profile-box">
@@ -47,26 +47,57 @@
             </div>
         </header>
 
-        <section class="stats-grid">
-            <div class="stat-card border-green">
-                <div class="stat-header"><h3>Successful Logins</h3><span class="icon green-text">✓</span></div>
-                <h1 class="green-text">{{ success_count | default('65') }}</h1>
+        <section class="analytics-stats-grid">
+            <div class="stat-card">
+                <h3>Successful Logins</h3>
+                <h1 class="cyan-text">{{ success_count | default('108') }}</h1>
+                <p class="trend positive">▲ All time</p>
             </div>
-            <div class="stat-card border-red">
-                <div class="stat-header"><h3>Failed Attempts</h3><span class="icon red-text">⚠</span></div>
-                <h1 class="red-text">{{ failed_count | default('12') }}</h1>
+            <div class="stat-card">
+                <h3>Failed Attempts</h3>
+                <h1 class="cyan-text">{{ failed_count | default('392') }}</h1>
+                <p class="trend negative">Δ All time</p>
             </div>
-            <div class="stat-card border-yellow">
-                <div class="stat-header"><h3>Blocked IPs</h3><span class="icon yellow-text">⊘</span></div>
-                <h1 class="yellow-text">{{ blocked_count | default('4') }}</h1>
+            <div class="stat-card">
+                <h3>Blocked Devices</h3>
+                <h1 class="cyan-text">{{ blocked_count | default('0') }}</h1>
+                <p class="trend warning">— Total blocked</p>
             </div>
         </section>
 
-        <div class="chart-container">
+        <div class="timeframe-tabs">
+            <button class="tab active">Weekly</button>
+            <button class="tab">Monthly</button>
+            <button class="tab">All Time</button>
+        </div>
+
+        <div class="chart-container large-chart">
             <div class="section-header">
-                <h3>SECURITY EVENT DISTRIBUTION</h3>
+                <h3 class="muted-title">LOGIN ACTIVITY – LAST 7 DAYS</h3>
             </div>
-            <canvas id="securityChart" height="80"></canvas>
+            <div style="height: 350px;">
+                <canvas id="loginLineChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bottom-charts-grid">
+            <div class="chart-container">
+                <div class="section-header">
+                    <h3 class="muted-title">SUCCESS VS FAILED</h3>
+                </div>
+                <div style="height: 300px; display: flex; justify-content: center;">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="section-header">
+                    <h3 class="muted-title">EVENT BREAKDOWN</h3>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -74,36 +105,120 @@
 
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-    const successCount = Number("{{ success_count | default(65) }}");
-    const failedCount = Number("{{ failed_count | default(12) }}");
-    const blockedCount = Number("{{ blocked_count | default(4) }}");
+document.addEventListener("DOMContentLoaded", function() {
+    // Shared Colors
+    const colorSuccess = "#3fb950"; // Green
+    const colorFailed = "#f85149";  // Red
+    const colorBlocked = "#d29922"; // Yellow
+    const colorGrid = "#30363d";
+    const colorText = "#8b949e";
 
-    const canvas = document.getElementById("securityChart");
-    if(!canvas) return;
-    const ctx = canvas.getContext("2d");
+    // Chart Defaults for Dark Theme
+    Chart.defaults.color = colorText;
+    Chart.defaults.font.family = "'Inter', sans-serif";
 
-    new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: ["Success", "Failed", "Blocked"],
-            datasets: [{
-                label: "Security Statistics",
-                data: [successCount, failedCount, blockedCount],
-                backgroundColor: ["rgba(63, 185, 80, 0.2)", "rgba(248, 81, 73, 0.2)", "rgba(210, 153, 34, 0.2)"],
-                borderColor: ["#3fb950", "#f85149", "#d29922"],
-                borderWidth: 1, borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, ticks: { color: "#8b949e", font: { family: "'Inter', sans-serif" } }, grid: { color: "#30363d" } },
-                x: { ticks: { color: "#8b949e", font: { family: "'Inter', sans-serif" } }, grid: { display: false } }
+    // 1. MAIN LINE CHART (Login Activity)
+    const lineCtx = document.getElementById('loginLineChart');
+    if(lineCtx) {
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Successful Logins',
+                        data: [15, 2, 1, 0, 1, 1, 1], // Simulated historical data
+                        borderColor: colorSuccess,
+                        backgroundColor: 'rgba(63, 185, 80, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: colorSuccess
+                    },
+                    {
+                        label: 'Failed Attempts',
+                        data: [56, 3, 4, 5, 8, 9, 7], // Simulated historical data
+                        borderColor: colorFailed,
+                        backgroundColor: 'rgba(248, 81, 73, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: colorFailed
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12 } }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: colorGrid } },
+                    x: { grid: { color: colorGrid } }
+                }
             }
-        }
-    });
+        });
+    }
+
+    // Pass backend vars to the bottom charts
+    const successCount = Number("{{ success_count | default(108) }}");
+    const failedCount = Number("{{ failed_count | default(392) }}");
+    const blockedCount = Number("{{ blocked_count | default(0) }}");
+
+    // 2. DOUGHNUT CHART (Success vs Failed)
+    const donutCtx = document.getElementById('doughnutChart');
+    if(donutCtx) {
+        new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Success', 'Failed'],
+                datasets: [{
+                    data: [successCount, failedCount],
+                    backgroundColor: [colorSuccess, colorFailed],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12 } }
+                }
+            }
+        });
+    }
+
+    // 3. BAR CHART (Event Breakdown)
+    const barCtx = document.getElementById('barChart');
+    if(barCtx) {
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Success', 'Failed', 'Blocked'],
+                datasets: [{
+                    label: 'Total Events',
+                    data: [successCount, failedCount, blockedCount],
+                    backgroundColor: [colorSuccess, colorFailed, colorBlocked],
+                    borderRadius: 4,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: colorGrid } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
 });
 </script>
 </body>

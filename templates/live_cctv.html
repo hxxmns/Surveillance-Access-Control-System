@@ -10,29 +10,21 @@
 <body>
 
 <div class="dashboard">
-
     <aside class="sidebar">
         <div class="logo-area">
             <h1>CYBER<span class="logo-accent">WATCH</span></h1>
         </div>
-        
-        <div class="sidebar-clock">
-            <div id="live-clock"></div>
-        </div>
-
+        <div class="sidebar-clock"><div id="live-clock"></div></div>
         <nav>
             <a href="/dashboard">Dashboard</a>
             <a href="/live-cctv" class="active">Live CCTV</a>
             <a href="/threat-logs">Threat Logs</a>
             <a href="/analytics">Analytics</a>
         </nav>
-        <div class="sidebar-footer">
-            <a href="/logout">Logout</a>
-        </div>
+        <div class="sidebar-footer"><a href="/logout">Logout</a></div>
     </aside>
 
     <main class="main-content">
-
         <header class="topbar">
             <div class="topbar-left">
                 <h2 class="page-title">Live CCTV Monitoring</h2>
@@ -49,9 +41,7 @@
         <div class="cctv-grid">
             <div class="cctv-card camera-section">
                 <div class="section-header">
-                    <div class="header-left">
-                        <h3>CAMERA 01</h3>
-                    </div>
+                    <div class="header-left"><h3>CAMERA 01</h3></div>
                     <div class="live-indicator"><span class="dot red"></span> Live</div>
                 </div>
                 <video id="localVideo" autoplay muted playsinline class="camera-feed" style="border-radius: 8px; width: 100%; height: auto; border: 1px solid var(--border-color);"></video>
@@ -77,7 +67,6 @@
                 </div>
             </div>
         </div>
-
     </main>
 </div>
 
@@ -85,10 +74,7 @@
 <script>
 async function startCamera() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: 1280, height: 720 },
-            audio: false
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
         document.getElementById("localVideo").srcObject = stream;
         document.getElementById("status-text").textContent = "ONLINE";
         document.getElementById("cam-status").textContent = "";

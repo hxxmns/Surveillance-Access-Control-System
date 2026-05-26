@@ -1,11 +1,11 @@
-/* --- REVISED LIVE CLOCK --- */
+/* --- REVISED LIVE CLOCK (Sidebar) --- */
 function updateClock() {
     const clock = document.getElementById("live-clock");
     if (clock) {
         const now = new Date();
         const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-        clock.innerHTML = `${dateStr} | ${timeStr}`;
+        clock.innerHTML = `${dateStr} <br> ${timeStr}`;
     }
 }
 setInterval(updateClock, 1000);
@@ -112,15 +112,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if(filterPills.length > 0) {
         filterPills.forEach(pill => {
             pill.addEventListener('click', () => {
-                // Remove active class from all pills
                 filterPills.forEach(p => p.classList.remove('active'));
-                // Add active class to clicked pill
                 pill.classList.add('active');
                 
                 const filterValue = pill.getAttribute('data-filter');
                 let visibleCount = 0;
 
-                // Show/Hide rows based on status
                 logRows.forEach(row => {
                     if (filterValue === 'all' || row.getAttribute('data-status') === filterValue) {
                         row.style.display = '';
@@ -130,7 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
 
-                // Update results count
                 const countText = document.querySelector('.results-count');
                 if(countText) countText.textContent = `${visibleCount} results`;
             });

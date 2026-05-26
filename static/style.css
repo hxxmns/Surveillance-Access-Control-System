@@ -175,7 +175,10 @@ body {
 }
 .feed-overlay {
     position: absolute;
-    bottom: 15px; left: 15px; right: 15px;
+    top: 15px;      
+    bottom: auto;    
+    left: 15px; 
+    right: 15px;
     display: flex;
     justify-content: space-between;
     font-size: 12px;

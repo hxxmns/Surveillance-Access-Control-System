@@ -280,3 +280,51 @@ body:has(.dashboard) { overflow: hidden; }
 .camera-side-panel { display: flex; flex-direction: column; gap: 20px; }
 .camera-info-card h3 { color: var(--text-muted); margin-bottom: 10px; font-size: 13px; font-weight: 600;}
 .camera-info-card p { font-size: 28px; font-weight: 700; color: var(--accent); }
+
+/* =========================================
+   7. CUSTOM CHART CHECKBOXES
+========================================= */
+
+/* Base style for the box: Hollow when unchecked */
+input[type="checkbox"].chart-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 2px solid;
+    border-radius: 2px;
+    background-color: transparent; /* Always empty when unchecked */
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0;
+    transition: 0.2s background-color;
+}
+
+/* --- Green "Success" Checkbox --- */
+input[type="checkbox"].chart-checkbox.success {
+    border-color: var(--green);
+}
+input[type="checkbox"].chart-checkbox.success:checked {
+    background-color: var(--green); /* Solid green when checked */
+}
+
+/* --- Red "Failed" Checkbox --- */
+input[type="checkbox"].chart-checkbox.failed {
+    border-color: var(--red);
+}
+input[type="checkbox"].chart-checkbox.failed:checked {
+    background-color: var(--red); /* Solid red when checked */
+}
+
+/* Wrapper to line up the box and the text nicely */
+.chart-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-right: 20px;
+}

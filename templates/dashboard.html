@@ -65,7 +65,7 @@
                 </div>
 
                 <div class="camera-wrapper main-feed">
-                    <img src="{{ url_for('video_feed') }}" class="camera-feed" alt="Primary Feed">
+                    <video id="dashboardVideo" autoplay muted playsinline class="camera-feed"></video>
                     <div class="feed-overlay">
                         <span class="feed-label">CAM-01 • Entrance</span>
                     </div>
@@ -108,5 +108,16 @@
     </main>
 </div>
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+<script>
+async function startDashboardCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+        document.getElementById("dashboardVideo").srcObject = stream;
+    } catch (err) {
+        console.error("Dashboard camera error:", err);
+    }
+}
+startDashboardCamera();
+</script>
 </body>
 </html>

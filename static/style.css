@@ -3,30 +3,22 @@
 ========================================= */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* Forces text highlight to be neutral gray instead of browser default blue */
 ::selection { background: #444444; color: white; }
 
 :root {
-    /* PURE NEUTRAL GRAYS - ABSOLUTELY ZERO BLUE UNDERTONES */
-    --bg-main: #0a0a0a; /* Very Dark Gray / Almost Black */
-    --bg-card: #141414; /* Dark Gray */
-    --border-color: #2a2a2a; /* Mid-Dark Gray */
-    --text-muted: #888888; /* Medium Gray */
+    --bg-main: #0a0a0a; 
+    --bg-card: #141414; 
+    --border-color: #2a2a2a; 
+    --text-muted: #888888; 
     
-    /* System Alerts */
     --green: #3fb950;
     --red: #f85149;
     --yellow: #d29922;
     --accent: #ffffff; /* Crisp Pure White */
 }
 
-body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-main); 
-    color: #e0e0e0;
-}
+body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: #e0e0e0; }
 
-/* Typography & Badges */
 .green-text { color: var(--green) !important; }
 .red-text { color: var(--red) !important; }
 .yellow-text { color: var(--yellow) !important; }
@@ -38,35 +30,18 @@ body {
 .badge.warn { background: rgba(210, 153, 34, 0.15); color: var(--yellow); border: 1px solid rgba(210, 153, 34, 0.3); }
 .badge.critical { background: rgba(248, 81, 73, 0.15); color: var(--red); border: 1px solid rgba(248, 81, 73, 0.3); }
 
-
 /* =========================================
    2. LOGIN PAGE SPECIFICS
 ========================================= */
 .login-page {
-    height: 100vh;
-    background-color: #000000;
-    background-image: url("/static/bg.jpg");
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: luminosity; /* Physically strips all color from your background image */
-    position: relative;
-    overflow: hidden;
+    height: 100vh; background-color: #000000; background-image: url("/static/bg.jpg");
+    background-size: cover; background-position: center; background-blend-mode: luminosity; 
+    position: relative; overflow: hidden;
 }
-.login-page .background-overlay {
-    position: absolute; inset: 0;
-    background: rgba(10, 10, 10, 0.85); /* Pure dark gray transparency */
-    backdrop-filter: blur(8px);
-    z-index: 1;
-}
-.login-container {
-    position: relative; z-index: 2; height: 100vh; display: flex;
-    align-items: center; justify-content: space-between; padding: 0 10%;
-}
+.login-page .background-overlay { position: absolute; inset: 0; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(8px); z-index: 1; }
+.login-container { position: relative; z-index: 2; height: 100vh; display: flex; align-items: center; justify-content: space-between; padding: 0 10%; }
 .login-left { width: 50%; }
-.login-left h1 {
-    font-size: 64px; line-height: 1.1; margin-bottom: 20px;
-    letter-spacing: -1px; color: var(--accent);
-}
+.login-left h1 { font-size: 64px; line-height: 1.1; margin-bottom: 20px; letter-spacing: -1px; color: var(--accent); }
 .login-left p { color: var(--text-muted); font-size: 18px; line-height: 1.5; margin-bottom: 30px; }
 .security-badges { display: flex; gap: 10px; }
 
@@ -79,25 +54,12 @@ body {
 
 .input-group { margin-bottom: 20px; }
 .input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
-.input-group input {
-    width: 100%; padding: 12px 15px; background: var(--bg-main); border: 1px solid var(--border-color);
-    border-radius: 6px; color: white; font-family: 'Inter', sans-serif;
-}
+.input-group input { width: 100%; padding: 12px 15px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; color: white; font-family: 'Inter', sans-serif; }
 .input-group input:focus { outline: none; border-color: var(--accent); }
 
-.btn-primary {
-    width: 100%; padding: 14px; background: var(--accent); color: #000;
-    border: none; border-radius: 6px; font-weight: 700; font-size: 14px;
-    cursor: pointer; transition: 0.2s; margin-top: 10px;
-}
+.btn-primary { width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
 .btn-primary:hover { background: #cccccc; transform: translateY(-1px); }
-
-.error-banner {
-    background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.4);
-    color: var(--red); padding: 10px; border-radius: 6px; font-size: 13px;
-    margin-bottom: 20px; text-align: center;
-}
-
+.error-banner { background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.4); color: var(--red); padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; }
 
 /* =========================================
    3. DASHBOARD LAYOUT & SIDEBAR
@@ -105,34 +67,21 @@ body {
 body:has(.dashboard) { overflow: hidden; } 
 .dashboard { display: flex; flex-direction: row !important; height: 100vh; width: 100vw; }
 
-.sidebar {
-    width: 260px; min-width: 260px; background: var(--bg-main);
-    border-right: 1px solid var(--border-color); padding: 30px 20px;
-    display: flex; flex-direction: column; height: 100vh;
-}
+.sidebar { width: 260px; min-width: 260px; background: var(--bg-main); border-right: 1px solid var(--border-color); padding: 30px 20px; display: flex; flex-direction: column; height: 100vh; }
 .logo-area h1 { font-size: 24px; color: var(--accent); font-weight: 700; letter-spacing: 1px; }
 .logo-accent { color: var(--text-muted); font-weight: 400; margin-left: 5px; }
 
-.sidebar-clock {
-    margin-top: 15px; margin-bottom: 25px; padding: 12px 10px;
-    background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color);
-    border-radius: 8px; text-align: center;
-}
+.sidebar-clock { margin-top: 15px; margin-bottom: 25px; padding: 12px 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; text-align: center; }
 .sidebar-clock #live-clock { color: var(--accent); font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
 
 .sidebar nav { display: flex; flex-direction: column; gap: 8px; }
-.sidebar nav a {
-    color: var(--text-muted); text-decoration: none; padding: 10px 15px; 
-    border-radius: 6px; font-size: 14px; font-weight: 500; transition: 0.2s;
-}
+.sidebar nav a { color: var(--text-muted); text-decoration: none; padding: 10px 15px; border-radius: 6px; font-size: 14px; font-weight: 500; transition: 0.2s; }
 .sidebar nav a:hover, .sidebar nav .active { background: rgba(255,255,255,0.08); color: var(--accent); }
-
 .sidebar-footer { margin-top: auto; padding-top: 20px; }
 .sidebar-footer a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s; }
 .sidebar-footer a:hover { color: var(--red); }
 
 .main-content { flex: 1; padding: 20px 40px; height: 100vh; overflow-y: auto; }
-
 
 /* =========================================
    4. TOPBAR & THREAT LOGS CONTROLS
@@ -140,58 +89,31 @@ body:has(.dashboard) { overflow: hidden; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
 .page-title { font-size: 24px; color: var(--accent); margin-bottom: 4px; font-weight: 600; }
 .topbar-right { display: flex; align-items: center; gap: 15px; }
-
-.profile-box {
-    background: var(--bg-card); border: 1px solid var(--border-color);
-    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;
-}
+.profile-box { background: var(--bg-card); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
 
 .logs-controls { margin-bottom: 20px; }
 .search-row { display: flex; gap: 10px; margin-bottom: 15px; }
-.search-row input {
-    flex: 1; padding: 12px 15px; background: var(--bg-card);
-    border: 1px solid var(--border-color); border-radius: 6px;
-    color: white; font-family: 'Inter', sans-serif;
-}
+.search-row input { flex: 1; padding: 12px 15px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; color: white; font-family: 'Inter', sans-serif; }
 .search-row input:focus { outline: none; border-color: var(--accent); }
-.search-row button {
-    padding: 0 25px; background: rgba(255, 255, 255, 0.08);
-    color: var(--accent); border: 1px solid var(--border-color); border-radius: 6px;
-    font-weight: 600; cursor: pointer; transition: 0.2s;
-}
+.search-row button { padding: 0 25px; background: rgba(255, 255, 255, 0.08); color: var(--accent); border: 1px solid var(--border-color); border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .search-row button:hover { background: rgba(255, 255, 255, 0.15); }
 
 .filter-row { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
 .filter-pills { display: flex; gap: 10px; flex-wrap: wrap; }
-.filter-pill {
-    background: transparent; border: 1px solid var(--border-color);
-    color: var(--text-muted); padding: 6px 16px; border-radius: 20px;
-    font-size: 12px; cursor: pointer; transition: 0.2s;
-}
+.filter-pill { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 6px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.2s; }
 .filter-pill:hover, .filter-pill.active { border-color: var(--accent); color: var(--bg-main); background: var(--accent); }
 .results-count { font-size: 12px; color: var(--text-muted); }
 
-.logs-table-container { 
-    background: var(--bg-card); border: 1px solid var(--border-color); 
-    border-radius: 12px; overflow: auto; padding: 10px 20px;
-}
+.logs-table-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: auto; padding: 10px 20px; }
 .logs-table { width: 100%; border-collapse: collapse; text-align: left; }
-.logs-table th {
-    color: var(--text-muted); font-size: 11px; font-weight: 600;
-    padding: 15px 10px; border-bottom: 1px solid var(--border-color); letter-spacing: 1px;
-}
+.logs-table th { color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 15px 10px; border-bottom: 1px solid var(--border-color); letter-spacing: 1px; }
 .logs-table td { padding: 15px 10px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .logs-table tr:hover td { background: rgba(255,255,255,0.03); }
-
 
 /* =========================================
    5. DASHBOARD COMPONENTS & CAMERA
 ========================================= */
-.system-nominal-banner {
-    background: rgba(46, 160, 67, 0.1); border: 1px solid rgba(46, 160, 67, 0.4);
-    border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 10px;
-    color: var(--green); font-weight: 500; font-size: 14px; margin-bottom: 25px;
-}
+.system-nominal-banner { background: rgba(46, 160, 67, 0.1); border: 1px solid rgba(46, 160, 67, 0.4); border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; color: var(--green); font-weight: 500; font-size: 14px; margin-bottom: 25px; }
 
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
 .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
@@ -219,16 +141,10 @@ body:has(.dashboard) { overflow: hidden; }
 
 .camera-wrapper { position: relative; width: 100%; height: 350px; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
 .camera-feed { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
-.feed-overlay {
-    position: absolute; top: 15px; left: 15px; right: 15px;
-    display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: white;
-    background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px;
-}
+.feed-overlay { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: white; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px; }
 
 .view-all { font-size: 13px; color: var(--accent); text-decoration: none; }
-.activity-graph {
-    display: flex; align-items: flex-end; gap: 4px; height: 30px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;
-}
+.activity-graph { display: flex; align-items: flex-end; gap: 4px; height: 30px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
 .activity-graph .bar { flex: 1; background: rgba(255, 255, 255, 0.1); height: 8px; border-radius: 2px; }
 .activity-graph .bar.medium { height: 16px; background: rgba(255, 255, 255, 0.4); }
 .activity-graph .bar.high { height: 24px; background: var(--accent); }
@@ -241,21 +157,14 @@ body:has(.dashboard) { overflow: hidden; }
 .status-indicator.red { background: var(--red); }
 .alert-content { flex: 1; }
 .alert-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.alert-title-row h4 { font-size: 14px; font-weight: 600; color: var(--accent); }
+.alert-title-row h4 { font-size: 14px; font-weight: 600; color: white; }
 .alert-sub { font-size: 12px; color: var(--text-muted); }
 .alert-time-col { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
 @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
 
-.cyber-notification {
-    position: fixed; top: 30px; right: -400px;
-    background: var(--bg-card); border: 1px solid var(--border-color); border-left: 5px solid var(--red);
-    color: white; padding: 16px 20px; border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8); z-index: 9999;
-    transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 14px; font-weight: 500;
-}
+.cyber-notification { position: fixed; top: 30px; right: -400px; background: #161b22; border: 1px solid var(--border-color); border-left: 5px solid var(--red); color: white; padding: 16px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); z-index: 9999; transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 14px; font-weight: 500; }
 .cyber-notification.show { right: 30px; }
-
 
 /* =========================================
    6. ANALYTICS & CCTV SPECIFICS
@@ -264,10 +173,7 @@ body:has(.dashboard) { overflow: hidden; }
 .trend.warning { color: var(--yellow); }
 
 .timeframe-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-.tab {
-    background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted);
-    padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s ease;
-}
+.tab { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s ease; }
 .tab.active, .tab:hover { border-color: var(--accent); color: var(--bg-main); background: var(--accent); }
 
 .chart-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; margin-bottom: 25px; }
@@ -284,47 +190,13 @@ body:has(.dashboard) { overflow: hidden; }
 /* =========================================
    7. CUSTOM CHART CHECKBOXES
 ========================================= */
-
-/* Base style for the box: Hollow when unchecked */
 input[type="checkbox"].chart-checkbox {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
-    border: 2px solid;
-    border-radius: 2px;
-    background-color: transparent; /* Always empty when unchecked */
-    cursor: pointer;
-    display: inline-block;
-    vertical-align: middle;
-    margin: 0;
-    transition: 0.2s background-color;
+    appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 2px solid;
+    border-radius: 2px; background-color: transparent; cursor: pointer; display: inline-block;
+    vertical-align: middle; margin: 0; transition: 0.2s background-color;
 }
-
-/* --- Green "Success" Checkbox --- */
-input[type="checkbox"].chart-checkbox.success {
-    border-color: var(--green);
-}
-input[type="checkbox"].chart-checkbox.success:checked {
-    background-color: var(--green); /* Solid green when checked */
-}
-
-/* --- Red "Failed" Checkbox --- */
-input[type="checkbox"].chart-checkbox.failed {
-    border-color: var(--red);
-}
-input[type="checkbox"].chart-checkbox.failed:checked {
-    background-color: var(--red); /* Solid red when checked */
-}
-
-/* Wrapper to line up the box and the text nicely */
-.chart-checkbox-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-right: 20px;
-}
+input[type="checkbox"].chart-checkbox.success { border-color: var(--green); }
+input[type="checkbox"].chart-checkbox.success:checked { background-color: var(--green); }
+input[type="checkbox"].chart-checkbox.failed { border-color: var(--red); }
+input[type="checkbox"].chart-checkbox.failed:checked { background-color: var(--red); }
+.chart-checkbox-label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; margin-right: 20px; }

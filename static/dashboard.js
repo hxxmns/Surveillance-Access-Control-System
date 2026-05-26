@@ -70,18 +70,6 @@ function checkCameraFeed() {
 }
 checkCameraFeed();
 
-/* --- CAMERA THUMBNAIL SWITCHER --- */
-document.querySelectorAll('.thumb').forEach(thumb => {
-    thumb.addEventListener('click', function() {
-        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        
-        const camName = this.querySelector('p').textContent;
-        const label = document.querySelector('.feed-label');
-        if(label) label.textContent = camName;
-    });
-});
-
 /* --- THREAT ALERT SOUND & NOTIFICATION --- */
 let previousFailedCount = 0;
 

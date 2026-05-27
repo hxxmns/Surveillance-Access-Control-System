@@ -5,9 +5,10 @@ import uuid
 import threading
 import blocker
 import detector
+import os
 
 app = Flask(__name__)
-app.secret_key = "Group7_netad"
+app.secret_key = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
 

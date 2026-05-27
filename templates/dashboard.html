@@ -92,7 +92,7 @@
                             <div class="alert-title-row">
                                 <h4>{{ log[1] }}</h4>
                                 <span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'warn' }}">
-                                    {{ 'OK' if log[2] == 'SUCCESS' else 'Warn' }}
+                                    {{ 'Success' if log[2] == 'SUCCESS' else 'Warn' }}
                                 </span>
                             </div>
                             <p class="alert-sub">{{ user | default('admin') }} • {{ log[0] }}</p>

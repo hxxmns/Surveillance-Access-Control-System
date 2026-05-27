@@ -200,3 +200,42 @@ input[type="checkbox"].chart-checkbox.success:checked { background-color: var(--
 input[type="checkbox"].chart-checkbox.failed { border-color: var(--red); }
 input[type="checkbox"].chart-checkbox.failed:checked { background-color: var(--red); }
 .chart-checkbox-label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; margin-right: 20px; }
+
+/* --- LOGIN PASSWORD WRAPPER FIX --- */
+.login-box .input-group .password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Ensure the input fills the space and leaves breathing room for the eye icon */
+.login-box .password-wrapper input[type="password"],
+.login-box .password-wrapper input[type="text"] {
+    width: 100%;
+    padding-right: 40px; /* Prevents text from slipping behind the icon */
+    margin-bottom: 0 !important; /* Overrides any default group spacing */
+}
+
+/* Securely pin the toggle button to the inside right edge */
+.login-box .toggle-password-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%); /* Centers it perfectly vertically */
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    z-index: 10;
+}
+
+.login-box .toggle-password-btn:hover {
+    color: var(--accent);
+}
+Compose
+Write to John Paul Paras

@@ -52,9 +52,10 @@ def save_log(device_id, event_type, status):
         conn.close()
 
 
+from werkzeug.security import check_password_hash
+
 @app.route("/", methods=["GET", "POST"])
 def login():
-
     device_id = get_device_id()
 
     if blocker.is_blocked(device_id):
@@ -66,7 +67,6 @@ def login():
         ), 403
 
     if request.method == "POST":
-
         username = request.form["username"].strip()
         password = request.form["password"].strip()
 
@@ -80,26 +80,17 @@ def login():
         """, (username,))
 
         user = cursor.fetchone()
-
         conn.close()
 
-        if user and user[1] == password:
-
+        if user and check_password_hash(user[1], password):
             session.permanent = True
             session["user"] = username
 
             detector.clear_failed_attempts(device_id)
 
-            save_log(
-                device_id,
-                f"Login Success: {username}",
-                "SUCCESS"
-            )
+            save_log(device_id, f"Login Success: {username}", "SUCCESS")
 
-            response = make_response(
-                redirect("/dashboard")
-            )
-
+            response = make_response(redirect("/dashboard"))
             response.set_cookie(
                 "device_id",
                 device_id,
@@ -107,36 +98,15 @@ def login():
                 httponly=True,
                 samesite="Lax"
             )
-
             return response
 
-        save_log(
-            device_id,
-            f"Login Failed: {username}",
-            "FAILED"
-        )
-
+        save_log(device_id, f"Login Failed: {username}", "FAILED")
         detector.register_failed_attempt(device_id)
 
         if detector.detect_attack(device_id):
-
-            blocker.block_device(
-                device_id,
-                "Too many failed login attempts (brute force detected)"
-            )
-
-            save_log(
-                device_id,
-                "Brute Force Detected",
-                "ALERT"
-            )
-
-            save_log(
-                device_id,
-                "DEVICE BLOCKED",
-                "BLOCKED"
-            )
-
+            blocker.block_device(device_id, "Too many failed login attempts (brute force detected)")
+            save_log(device_id, "Brute Force Detected", "ALERT")
+            save_log(device_id, "DEVICE BLOCKED", "BLOCKED")
             return render_template(
                 "login.html",
                 blocked=True,
@@ -157,7 +127,6 @@ def login():
                 warning=warning
             )
         )
-
         response.set_cookie(
             "device_id",
             device_id,
@@ -165,8 +134,17 @@ def login():
             httponly=True,
             samesite="Lax"
         )
-
         return response
+
+    response = make_response(render_template("login.html"))
+    response.set_cookie(
+        "device_id",
+        device_id,
+        max_age=60 * 60 * 24 * 365,
+        httponly=True,
+        samesite="Lax"
+    )
+    return response
 
     response = make_response(
         render_template("login.html")

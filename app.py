@@ -194,9 +194,9 @@ def dashboard():
     unique_attackers = cursor.fetchone()[0]
 
     cursor.execute("""
-        SELECT device_id, event_type, status, timestamp
+        SELECT device_id, event_type, status, created_at
         FROM security_logs
-        ORDER BY timestamp DESC
+        ORDER BY created_at DESC
         LIMIT 7
     """)
     recent_alerts = cursor.fetchall()

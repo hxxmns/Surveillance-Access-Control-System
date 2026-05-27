@@ -92,7 +92,14 @@
                             <div class="alert-title-row">
                                 <h4>{{ log[1] }}</h4>
                                 <span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'warn' }}">
-                                    {{ 'Success' if log[2] == 'SUCCESS' else 'Warning' }}
+                                    {% if log[2] == 'SUCCESS' %}
+                                        Success
+                                    {% else %}
+                                        Warning 
+                                        {% if 'Attempt' in log[1] %}
+                                            ({{ log[1].split('Attempt ')[1].split(' ')[0] }}/3)
+                                        {% endif %}
+                                    {% endif %}
                                 </span>
                             </div>
                             <p class="alert-sub">{{ user | default('admin') }} • {{ log[0] }}</p>

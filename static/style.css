@@ -62,10 +62,33 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: #e0e
 .error-banner { background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.4); color: var(--red); padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; }
 
 /* Password Visibility Toggle */
-.password-wrapper { position: relative; display: flex; align-items: center; }
-.password-wrapper input { padding-right: 40px; }
-.eye-btn { position: absolute; right: 12px; background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: 0.2s; }
-.eye-btn:hover { color: var(--accent); }
+.password-wrapper { 
+    position: relative; 
+    display: flex; 
+    align-items: center; 
+}
+
+.password-wrapper input { 
+    padding-right: 40px; 
+}
+
+.eye-btn { 
+    position: absolute; 
+    right: 12px; 
+    background: none; 
+    border: none; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 0; 
+    transition: 0.2s; 
+}
+
+.eye-btn:hover { 
+    color: var(--accent); 
+}
 /* =========================================
    3. DASHBOARD LAYOUT & SIDEBAR
 ========================================= */

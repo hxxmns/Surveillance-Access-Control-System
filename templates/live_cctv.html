@@ -44,7 +44,8 @@
                     <div class="header-left"><h3>CAMERA 01</h3></div>
                     <div class="live-indicator"><span class="dot red"></span> Live</div>
                 </div>
-                <video id="localVideo" autoplay muted playsinline class="camera-feed" style="border-radius: 8px; width: 100%; height: auto; border: 1px solid var(--border-color);"></video>
+                <img id="networkFeed" src="/video_feed" class="camera-feed"
+                    style="border-radius:8px; width:100%; border:1px solid var(--border-color);">
                 <p id="cam-status" style="color:var(--text-muted); margin-top:10px; font-size:13px;"></p>
             </div>
 
@@ -162,43 +163,6 @@ function analyzeFrame(video, canvas) {
     prevFrame = frame;
     return (diffPixels / (160 * 90) * 100) > MOTION_THRESHOLD;
 }
-
-async function startCamera() {
-    const dot = document.getElementById('motionDot');
-    const label = document.getElementById('motionLabel');
-    const badge = document.getElementById('motionBadge');
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
-        const video = document.getElementById("localVideo");
-        video.srcObject = stream;
-        document.getElementById("status-text").textContent = "ONLINE";
-        document.getElementById("cam-status").textContent = "";
-
-        video.addEventListener('loadeddata', () => {
-            dot.className = 'motion-icon-dot motion-clear';
-            label.textContent = 'NO MOTION DETECTED';
-            label.className = 'motion-label motion-label-clear';
-            badge.textContent = 'CLEAR';
-            badge.className = 'motion-badge motion-badge-clear';
-            appendMotionLog('Motion detection system online', 'system');
-
-            const canvas = document.getElementById('motionCanvas');
-            setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    setMotionState(analyzeFrame(video, canvas));
-                }
-            }, 200);
-        });
-    } catch (err) {
-        document.getElementById("cam-status").textContent = "Camera access denied or unavailable.";
-        document.getElementById("status-text").textContent = "OFFLINE";
-        document.getElementById("status-text").className = "red-text";
-        label.textContent = 'CAMERA UNAVAILABLE';
-        badge.textContent = 'OFFLINE';
-        appendMotionLog('Camera access denied', 'system');
-    }
-}
-startCamera();
 </script>
 </body>
 </html>

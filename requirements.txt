@@ -10,3 +10,5 @@ itsdangerous
 click
 blinker
 python-dotenv
+flask-socketio
+python-socketio

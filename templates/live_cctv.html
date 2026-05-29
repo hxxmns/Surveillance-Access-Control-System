@@ -165,13 +165,13 @@ function analyzeFrame(video, canvas) {
 }
 
 function refreshFeed() {
-    const feed = document.getElementById('dashboardFeed'); // change to 'networkFeed' for live_cctv.html
+    const feed = document.getElementById('networkFeed');
     if (feed) {
         feed.src = '/video_feed?t=' + new Date().getTime();
     }
 }
-setInterval(refreshFeed, 200); // refresh every 200ms = ~5 FPS
-refreshFeed(); // start immediately
+setInterval(refreshFeed, 200);
+refreshFeed();
 </script>
 </body>
 </html>

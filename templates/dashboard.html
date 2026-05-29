@@ -105,7 +105,7 @@
                     <div class="bar medium"></div>
                 </div>
 
-                <div class="alerts-list">
+                <div class="alerts-list" style="display:flex; flex-direction:column;">
                     {% for log in recent_alerts %}
                     <div class="alert-item">
                         <div class="status-indicator {{ 'green' if log[2] == 'SUCCESS' else 'yellow' }}"></div>

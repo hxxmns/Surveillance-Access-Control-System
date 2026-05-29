@@ -307,9 +307,11 @@ def generate_frames():
         with frame_lock:
             frame = latest_frame
         if frame is None:
+            time.sleep(0.05)  # ← add this
             continue
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        time.sleep(0.05)  # ← and this, to cap at ~20 FPS
 
 
 @app.route("/video_feed")

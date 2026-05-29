@@ -58,14 +58,15 @@
                 <div class="section-header">
                     <div class="header-left">
                         <h3>LIVE SURVEILLANCE</h3>
-                        <span class="status-dot" id="camDot"></span>
-                        <span class="status-text" id="camStatusText">Connecting...</span>
+                        <span class="status-dot green"></span>
+                        <span class="status-text green-text">Camera online</span>
                     </div>
                     <div class="live-indicator"><span class="dot red"></span> Live</div>
                 </div>
 
                 <div class="camera-wrapper main-feed">
-                    <canvas id="dashboardCanvas" class="camera-feed" style="width:100%; border-radius:8px; background:#0d1117;"></canvas>
+                    <img id="dashboardFeed" src="/video_feed" class="camera-feed"
+                        onerror="this.src='/video_feed'" style="width:100%; border-radius:8px;">
                     <div class="feed-overlay">
                         <span class="feed-label">CAM-01 •</span>
                     </div>
@@ -99,6 +100,12 @@
                     <div class="bar medium"></div>
                 </div>
 
+                <div class="activity-graph">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                    <div class="bar"></div><div class="bar"></div><div class="bar high"></div>
+                    <div class="bar medium"></div>
+                </div>
+
                 <div class="alerts-list">
                     {% for log in recent_alerts %}
                     <div class="alert-item">
@@ -110,7 +117,7 @@
                                     {% if log[2] == 'SUCCESS' %}
                                         Success
                                     {% else %}
-                                        Warning
+                                        Warning 
                                         {% if 'Attempt' in log[1] %}
                                             ({{ log[1].split('Attempt ')[1].split(' ')[0] }}/3)
                                         {% endif %}
@@ -129,66 +136,19 @@
         </section>
     </main>
 </div>
-
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 <script>
-// ---- WEBSOCKET CAMERA FEED ----
-const canvas = document.getElementById('dashboardCanvas');
-const ctx = canvas.getContext('2d');
-const camDot = document.getElementById('camDot');
-const camStatusText = document.getElementById('camStatusText');
-
-const socket = io();
-
-socket.on('connect', () => {
-    console.log('Socket connected');
-});
-
-socket.on('frame', function(data) {
-    // Update camera status to online on first frame
-    camDot.className = 'status-dot green';
-    camStatusText.textContent = 'Camera online';
-    camStatusText.className = 'status-text green-text';
-
-    const blob = new Blob([data], { type: 'image/jpeg' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
-
-        // Run motion detection on each frame
-        runMotionDetection(canvas);
-    };
-    img.src = url;
-});
-
-// Show offline if no frame received within 5 seconds
-let feedTimeout = setTimeout(() => {
-    camDot.className = 'status-dot red';
-    camStatusText.textContent = 'Camera offline';
-    camStatusText.className = 'status-text red-text';
-}, 5000);
-
-socket.on('frame', () => {
-    clearTimeout(feedTimeout);
-    feedTimeout = setTimeout(() => {
-        camDot.className = 'status-dot red';
-        camStatusText.textContent = 'Camera offline';
-        camStatusText.className = 'status-text red-text';
-    }, 5000);
-});
-
-// ---- MOTION DETECTION ----
+// ---- MOTION DETECTION ENGINE ----
 const MOTION_THRESHOLD = 30;
 const PIXEL_DIFF_THRESHOLD = 25;
 
 let prevFrame = null;
 let motionActive = false;
 let motionTimeout = null;
+let cameraStream = null;
+
+const motionLog = [];
+const MAX_LOG = 50;
 
 function getTimestamp() {
     return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
@@ -197,6 +157,8 @@ function getTimestamp() {
 function appendMotionLog(message, type) {
     const area = document.getElementById('motionLogArea');
     if (!area) return;
+
+    // Remove placeholder
     const placeholder = area.querySelector('.motion-log-placeholder');
     if (placeholder) placeholder.remove();
 
@@ -205,7 +167,13 @@ function appendMotionLog(message, type) {
     entry.innerHTML = `<span class="motion-log-time">${getTimestamp()}</span><span class="motion-log-msg">${message}</span>`;
     area.insertBefore(entry, area.firstChild);
 
-    while (area.children.length > 50) area.removeChild(area.lastChild);
+    motionLog.unshift({ message, type, time: getTimestamp() });
+    if (motionLog.length > MAX_LOG) motionLog.pop();
+
+    // Trim DOM entries
+    while (area.children.length > MAX_LOG) {
+        area.removeChild(area.lastChild);
+    }
 }
 
 function setMotionState(detected) {
@@ -225,7 +193,10 @@ function setMotionState(detected) {
         appendMotionLog('Motion detected in frame', 'alert');
     }
 
-    if (detected && motionTimeout) { clearTimeout(motionTimeout); motionTimeout = null; }
+    if (detected && motionTimeout) {
+        clearTimeout(motionTimeout);
+        motionTimeout = null;
+    }
 
     if (!detected && motionActive && !motionTimeout) {
         motionTimeout = setTimeout(() => {
@@ -242,40 +213,29 @@ function setMotionState(detected) {
     }
 }
 
-function runMotionDetection(sourceCanvas) {
-    const motionCanvas = document.getElementById('motionCanvas');
-    const mCtx = motionCanvas.getContext('2d');
-    motionCanvas.width = 160;
-    motionCanvas.height = 90;
-    mCtx.drawImage(sourceCanvas, 0, 0, 160, 90);
-    const frame = mCtx.getImageData(0, 0, 160, 90);
+function analyzeFrame(video, canvas) {
+    const ctx = canvas.getContext('2d');
+    canvas.width = 160;
+    canvas.height = 90;
+    ctx.drawImage(video, 0, 0, 160, 90);
+    const frame = ctx.getImageData(0, 0, 160, 90);
 
     if (!prevFrame) {
         prevFrame = frame;
-        // System online log on first frame
-        const dot = document.getElementById('motionDot');
-        const label = document.getElementById('motionLabel');
-        const badge = document.getElementById('motionBadge');
-        dot.className = 'motion-icon-dot motion-clear';
-        label.textContent = 'NO MOTION DETECTED';
-        label.className = 'motion-label motion-label-clear';
-        badge.textContent = 'CLEAR';
-        badge.className = 'motion-badge motion-badge-clear';
-        appendMotionLog('Motion detection system online', 'system');
-        return;
+        return false;
     }
 
     let diffPixels = 0;
     for (let i = 0; i < frame.data.length; i += 4) {
-        const avg = (Math.abs(frame.data[i] - prevFrame.data[i]) +
-                     Math.abs(frame.data[i+1] - prevFrame.data[i+1]) +
-                     Math.abs(frame.data[i+2] - prevFrame.data[i+2])) / 3;
-        if (avg > PIXEL_DIFF_THRESHOLD) diffPixels++;
+        const rDiff = Math.abs(frame.data[i] - prevFrame.data[i]);
+        const gDiff = Math.abs(frame.data[i+1] - prevFrame.data[i+1]);
+        const bDiff = Math.abs(frame.data[i+2] - prevFrame.data[i+2]);
+        if ((rDiff + gDiff + bDiff) / 3 > PIXEL_DIFF_THRESHOLD) diffPixels++;
     }
 
     prevFrame = frame;
-    const motionDetected = (diffPixels / (160 * 90) * 100) > MOTION_THRESHOLD;
-    setMotionState(motionDetected);
+    const totalPixels = (160 * 90);
+    return (diffPixels / totalPixels * 100) > MOTION_THRESHOLD;
 }
 </script>
 </body>

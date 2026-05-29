@@ -65,8 +65,7 @@
                 </div>
 
                 <div class="camera-wrapper main-feed">
-                    <img id="dashboardFeed" src="/video_feed" class="camera-feed"
-                        onerror="this.src='/video_feed'" style="width:100%; border-radius:8px;">
+                    <video id="dashboardVideo" autoplay muted playsinline class="camera-feed"></video>
                     <div class="feed-overlay">
                         <span class="feed-label">CAM-01 •</span>
                     </div>
@@ -238,6 +237,42 @@ function analyzeFrame(video, canvas) {
     return (diffPixels / totalPixels * 100) > MOTION_THRESHOLD;
 }
 
+async function startDashboardCamera() {
+    const dot = document.getElementById('motionDot');
+    const label = document.getElementById('motionLabel');
+    const badge = document.getElementById('motionBadge');
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+        const video = document.getElementById("dashboardVideo");
+        video.srcObject = stream;
+        cameraStream = stream;
+
+        video.addEventListener('loadeddata', () => {
+            dot.className = 'motion-icon-dot motion-clear';
+            label.textContent = 'NO MOTION DETECTED';
+            label.className = 'motion-label motion-label-clear';
+            badge.textContent = 'CLEAR';
+            badge.className = 'motion-badge motion-badge-clear';
+            appendMotionLog('Motion detection system online', 'system');
+
+            const canvas = document.getElementById('motionCanvas');
+            setInterval(() => {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    const motionDetected = analyzeFrame(video, canvas);
+                    setMotionState(motionDetected);
+                }
+            }, 200);
+        });
+    } catch (err) {
+        console.error("Dashboard camera error:", err);
+        label.textContent = 'CAMERA UNAVAILABLE';
+        badge.textContent = 'OFFLINE';
+        badge.className = 'motion-badge';
+        appendMotionLog('Camera access denied — motion detection offline', 'system');
+    }
+}
+startDashboardCamera();
 </script>
 </body>
 </html>

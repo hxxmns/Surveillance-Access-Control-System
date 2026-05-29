@@ -163,6 +163,15 @@ function analyzeFrame(video, canvas) {
     prevFrame = frame;
     return (diffPixels / (160 * 90) * 100) > MOTION_THRESHOLD;
 }
+
+function refreshFeed() {
+    const feed = document.getElementById('dashboardFeed'); // change to 'networkFeed' for live_cctv.html
+    if (feed) {
+        feed.src = '/video_feed?t=' + new Date().getTime();
+    }
+}
+setInterval(refreshFeed, 200); // refresh every 200ms = ~5 FPS
+refreshFeed(); // start immediately
 </script>
 </body>
 </html>

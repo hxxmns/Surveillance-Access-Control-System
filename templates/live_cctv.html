@@ -44,7 +44,7 @@
                     <div class="header-left"><h3>CAMERA 01</h3></div>
                     <div class="live-indicator"><span class="dot red"></span> Live</div>
                 </div>
-                <img id="networkFeed" class="camera-feed" style="border-radius:8px; width:100%; border:1px solid var(--border-color);">
+                <img id="networkFeed" src="/video_feed" class="camera-feed"
                     style="border-radius:8px; width:100%; border:1px solid var(--border-color);">
                 <p id="cam-status" style="color:var(--text-muted); margin-top:10px; font-size:13px;"></p>
             </div>
@@ -163,15 +163,6 @@ function analyzeFrame(video, canvas) {
     prevFrame = frame;
     return (diffPixels / (160 * 90) * 100) > MOTION_THRESHOLD;
 }
-
-function refreshFeed() {
-    const feed = document.getElementById('networkFeed');
-    if (feed) {
-        feed.src = '/video_feed?t=' + new Date().getTime();
-    }
-}
-setInterval(refreshFeed, 200);
-refreshFeed();
 </script>
 </body>
 </html>

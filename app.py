@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, Response, make_response
+from flask_socketio import SocketIO
 from database import get_connection
 from datetime import datetime, timedelta
 import uuid
@@ -11,46 +12,42 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 latest_frame = None
 frame_lock = threading.Lock()
 
+
 def get_device_id():
-
     device_id = request.cookies.get("device_id")
-
     if not device_id:
         device_id = str(uuid.uuid4())
-
     return device_id
 
 
 def save_log(device_id, event_type, status):
-
     conn = get_connection()
     cursor = conn.cursor()
-
     philippines_time = datetime.utcnow() + timedelta(hours=8)
-
     try:
         cursor.execute("""
             INSERT INTO security_logs
             (device_id, event_type, status, created_at)
             VALUES (%s, %s, %s, %s)
-        """, (
-            device_id,
-            event_type,
-            status,
-            philippines_time
-        ))
-
+        """, (device_id, event_type, status, philippines_time))
         conn.commit()
-
     except:
         conn.rollback()
-
     finally:
         conn.close()
+
+
+@socketio.on('frame')
+def handle_frame(data):
+    global latest_frame
+    with frame_lock:
+        latest_frame = data
+    socketio.emit('frame', data, broadcast=True)
 
 
 from werkzeug.security import check_password_hash
@@ -73,31 +70,24 @@ def login():
 
         conn = get_connection()
         cursor = conn.cursor()
-
         cursor.execute("""
             SELECT username, password
             FROM users
             WHERE username=%s
         """, (username,))
-
         user = cursor.fetchone()
         conn.close()
 
         if user and check_password_hash(user[1], password):
             session.permanent = True
             session["user"] = username
-
             detector.clear_failed_attempts(device_id)
-
             save_log(device_id, f"Login Success: {username}", "SUCCESS")
-
             response = make_response(redirect("/dashboard"))
             response.set_cookie(
-                "device_id",
-                device_id,
+                "device_id", device_id,
                 max_age=60 * 60 * 24 * 365,
-                httponly=True,
-                samesite="Lax"
+                httponly=True, samesite="Lax"
             )
             return response
 
@@ -117,54 +107,30 @@ def login():
         failed_count = detector.get_failed_count(device_id)
         attempts_left = 5 - failed_count
         warning = None
-
         if attempts_left <= 2:
             warning = f"⚠ Warning: {attempts_left} attempt{'s' if attempts_left != 1 else ''} left before your device is permanently blocked."
 
         response = make_response(
-            render_template(
-                "login.html",
-                error="Invalid username or password.",
-                warning=warning
-            )
+            render_template("login.html", error="Invalid username or password.", warning=warning)
         )
         response.set_cookie(
-            "device_id",
-            device_id,
+            "device_id", device_id,
             max_age=60 * 60 * 24 * 365,
-            httponly=True,
-            samesite="Lax"
+            httponly=True, samesite="Lax"
         )
         return response
 
     response = make_response(render_template("login.html"))
     response.set_cookie(
-        "device_id",
-        device_id,
+        "device_id", device_id,
         max_age=60 * 60 * 24 * 365,
-        httponly=True,
-        samesite="Lax"
+        httponly=True, samesite="Lax"
     )
-    return response
-
-    response = make_response(
-        render_template("login.html")
-    )
-
-    response.set_cookie(
-        "device_id",
-        device_id,
-        max_age=60 * 60 * 24 * 365,
-        httponly=True,
-        samesite="Lax"
-    )
-
     return response
 
 
 @app.route("/dashboard")
 def dashboard():
-
     if "user" not in session:
         return redirect("/")
 
@@ -172,25 +138,18 @@ def dashboard():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='SUCCESS'
-        AND created_at >= CURRENT_DATE
+        SELECT COUNT(*) FROM security_logs
+        WHERE status='SUCCESS' AND created_at >= CURRENT_DATE
     """)
     today_access = cursor.fetchone()[0]
 
     cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='FAILED'
-        AND created_at >= CURRENT_DATE
+        SELECT COUNT(*) FROM security_logs
+        WHERE status='FAILED' AND created_at >= CURRENT_DATE
     """)
     unauthorized = cursor.fetchone()[0]
 
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM blocked_devices
-    """)
+    cursor.execute("SELECT COUNT(*) FROM blocked_devices")
     unique_attackers = cursor.fetchone()[0]
 
     cursor.execute("""
@@ -200,7 +159,6 @@ def dashboard():
         LIMIT 7
     """)
     recent_alerts = cursor.fetchall()
-
     conn.close()
 
     return render_template(
@@ -215,70 +173,45 @@ def dashboard():
 
 @app.route("/live-cctv")
 def live_cctv():
-
     if "user" not in session:
         return redirect("/")
-
-    return render_template(
-        "live_cctv.html",
-        user=session["user"]
-    )
+    return render_template("live_cctv.html", user=session["user"])
 
 
 @app.route("/threat-logs")
 def threat_logs():
-
     if "user" not in session:
         return redirect("/")
 
     conn = get_connection()
     cursor = conn.cursor()
-
     cursor.execute("""
         SELECT device_id, event_type, status, created_at
         FROM security_logs
         ORDER BY created_at DESC
         LIMIT 50
     """)
-
     logs = cursor.fetchall()
-
     conn.close()
 
-    return render_template(
-        "threat_logs.html",
-        user=session["user"],
-        logs=logs
-    )
+    return render_template("threat_logs.html", user=session["user"], logs=logs)
 
 
 @app.route("/analytics")
 def analytics():
-
     if "user" not in session:
         return redirect("/")
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='SUCCESS'
-    """)
+    cursor.execute("SELECT COUNT(*) FROM security_logs WHERE status='SUCCESS'")
     success_count = cursor.fetchone()[0]
 
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='FAILED'
-    """)
+    cursor.execute("SELECT COUNT(*) FROM security_logs WHERE status='FAILED'")
     failed_count = cursor.fetchone()[0]
 
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM blocked_devices
-    """)
+    cursor.execute("SELECT COUNT(*) FROM blocked_devices")
     blocked_count = cursor.fetchone()[0]
 
     conn.close()
@@ -292,49 +225,11 @@ def analytics():
     )
 
 
-@app.route("/upload_frame", methods=["POST"])
-def upload_frame():
-    global latest_frame
-    data = request.data
-    with frame_lock:
-        latest_frame = data
-    return "OK", 200
-
-
-def generate_frames():
-    global latest_frame
-    while True:
-        with frame_lock:
-            frame = latest_frame
-        if frame is None:
-            time.sleep(0.05)  # ← add this
-            continue
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        time.sleep(0.05)  # ← and this, to cap at ~20 FPS
-
-
-@app.route("/video_feed")
-def video_feed():
-    if "user" not in session:
-        return "Unauthorized", 403
-    return Response(generate_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
 @app.route("/logout")
 def logout():
-
     session.clear()
+    return make_response(redirect("/"))
 
-    response = make_response(
-        redirect("/")
-    )
-
-    return response
-
-
-import atexit
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    socketio.run(app, debug=True, use_reloader=False)

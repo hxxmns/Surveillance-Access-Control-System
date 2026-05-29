@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, Response, make_response
 from database import get_connection
 from datetime import datetime, timedelta
+import time
 import uuid
 import threading
 import blocker
@@ -307,11 +308,11 @@ def generate_frames():
         with frame_lock:
             frame = latest_frame
         if frame is None:
-            time.sleep(0.05)  # ← add this
+            time.sleep(0.05)
             continue
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        time.sleep(0.05)  # ← and this, to cap at ~20 FPS
+        time.sleep(0.05)  # ← this is critical, must be here
 
 @app.route("/video_feed")
 def video_feed():

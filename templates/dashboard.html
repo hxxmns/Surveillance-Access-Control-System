@@ -65,7 +65,7 @@
                 </div>
 
                 <div class="camera-wrapper main-feed">
-                    <img id="dashboardFeed" class="camera-feed" style="width:100%; border-radius:8px;">
+                    <img id="dashboardFeed" src="/video_feed" class="camera-feed"
                         onerror="this.src='/video_feed'" style="width:100%; border-radius:8px;">
                     <div class="feed-overlay">
                         <span class="feed-label">CAM-01 •</span>
@@ -238,14 +238,6 @@ function analyzeFrame(video, canvas) {
     return (diffPixels / totalPixels * 100) > MOTION_THRESHOLD;
 }
 
-function refreshFeed() {
-    const feed = document.getElementById('dashboardFeed'); // change to 'networkFeed' for live_cctv.html
-    if (feed) {
-        feed.src = '/video_feed?t=' + new Date().getTime();
-    }
-}
-setInterval(refreshFeed, 200); // refresh every 200ms = ~5 FPS
-refreshFeed(); // start immediately
 </script>
 </body>
 </html>

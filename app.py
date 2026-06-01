@@ -252,28 +252,32 @@ def analytics():
 
 
 def generate_frames():
-    """Streams chunks directly from the environment-configured CCTV URL."""
     if not CCTV_STREAM_URL:
-        print("Error: CCTV_STREAM_URL environment variable is not configured.")
+        print("Error: CCTV_STREAM_URL is not set.")
         return
 
     try:
-        response = requests.get(CCTV_STREAM_URL, stream=True, timeout=10)
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:
-                yield chunk
+        with requests.get(CCTV_STREAM_URL, stream=True, timeout=30) as response:
+            for chunk in response.iter_content(chunk_size=4096):
+                if chunk:
+                    yield chunk
     except Exception as e:
-        print(f"Error streaming from CCTV source: {e}")
+        print(f"Error streaming from CCTV: {e}")
 
 
 @app.route("/video_feed")
 def video_feed():
     if "user" not in session:
         return "Unauthorized", 403
-    
-    return Response(generate_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
+    # Get the content-type directly from the camera so it passes through correctly
+    try:
+        head = requests.head(CCTV_STREAM_URL, timeout=5)
+        content_type = head.headers.get('Content-Type', 'multipart/x-mixed-replace; boundary=frame')
+    except:
+        content_type = 'multipart/x-mixed-replace; boundary=frame'
+
+    return Response(generate_frames(), mimetype=content_type)
 
 @app.route("/logout")
 def logout():

@@ -12,6 +12,8 @@ app.secret_key = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
 CCTV_STREAM_URL = os.getenv("CCTV_STREAM_URL")
+if CCTV_STREAM_URL:
+    CCTV_STREAM_URL = CCTV_STREAM_URL.strip('"').strip("'").strip()
 
 
 def get_device_id():
@@ -253,31 +255,28 @@ def analytics():
 
 def generate_frames():
     if not CCTV_STREAM_URL:
-        print("Error: CCTV_STREAM_URL is not set.")
+        print("[CCTV ERROR] No stream target configured in environment.")
         return
 
+    print(f"[CCTV INFO] Targeting stream: {CCTV_STREAM_URL}")
+    
     try:
-        with requests.get(CCTV_STREAM_URL, stream=True, timeout=30) as response:
-            for chunk in response.iter_content(chunk_size=4096):
-                if chunk:
-                    yield chunk
+        response = requests.get(CCTV_STREAM_URL, stream=True, timeout=15)
+        for chunk in response.iter_content(chunk_size=4096):
+            if chunk:
+                yield chunk
     except Exception as e:
-        print(f"Error streaming from CCTV: {e}")
+        print(f"[CCTV ERROR] Failed streaming from backend source: {e}")
 
 
 @app.route("/video_feed")
 def video_feed():
     if "user" not in session:
         return "Unauthorized", 403
+    
+    return Response(generate_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
-    # Get the content-type directly from the camera so it passes through correctly
-    try:
-        head = requests.head(CCTV_STREAM_URL, timeout=5)
-        content_type = head.headers.get('Content-Type', 'multipart/x-mixed-replace; boundary=frame')
-    except:
-        content_type = 'multipart/x-mixed-replace; boundary=frame'
-
-    return Response(generate_frames(), mimetype=content_type)
 
 @app.route("/logout")
 def logout():

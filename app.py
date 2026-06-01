@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
-CCTV_STREAM_URL = os.getenv("CCTV_STREAM_URL")
+CCTV_STREAM_URL = "https://star-faced-retirement-inherited.trycloudflare.com/stream?key=praise-the-fool"
 if CCTV_STREAM_URL:
     CCTV_STREAM_URL = CCTV_STREAM_URL.strip('"').strip("'").strip()
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live CCTV - Cyber Watch</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -44,14 +44,14 @@
                     <div class="header-left"><h3>CAMERA 01</h3></div>
                     <div class="live-indicator"><span class="dot red"></span> Live</div>
                 </div>
-                <video id="localVideo" autoplay muted playsinline class="camera-feed" style="border-radius: 8px; width: 100%; height: auto; border: 1px solid var(--border-color);"></video>
+                <img id="localVideo" src="{{ url_for('video_feed') }}" class="camera-feed" style="border-radius: 8px; width: 100%; height: auto; border: 1px solid var(--border-color);" alt="CCTV Feed">
                 <p id="cam-status" style="color:var(--text-muted); margin-top:10px; font-size:13px;"></p>
             </div>
 
             <div class="camera-side-panel">
                 <div class="camera-info-card">
                     <h3>Camera Status</h3>
-                    <p id="status-text" class="green-text">CONNECTING</p>
+                    <p id="status-text" class="green-text">ONLINE</p>
                 </div>
                 <div class="camera-info-card">
                     <h3>AI Detection</h3>
@@ -66,20 +66,20 @@
                     <p>30 FPS</p>
                 </div>
 
-                <!-- MOTION DETECTOR CARD -->
                 <div class="camera-info-card motion-detector-widget" id="motionWidget" style="padding: 20px;">
                     <h3>Motion Detection</h3>
                     <div class="motion-widget-header" style="margin-bottom: 12px; margin-top: 10px;">
                         <div class="motion-label-row">
-                            <span class="motion-icon-dot" id="motionDot"></span>
-                            <span class="motion-label" id="motionLabel" style="font-size: 13px; font-weight: 700;">INITIALIZING...</span>
+                            <span class="motion-icon-dot motion-clear" id="motionDot"></span>
+                            <span class="motion-label motion-label-clear" id="motionLabel" style="font-size: 13px; font-weight: 700;">MONITORING ACTIVE</span>
                         </div>
-                        <span class="motion-badge" id="motionBadge" style="margin-top: 8px;">STANDBY</span>
+                        <span class="motion-badge motion-badge-clear" id="motionBadge" style="margin-top: 8px;">ONLINE</span>
                     </div>
                     <div class="motion-log-area motion-log-area-compact" id="motionLogArea">
-                        <span class="motion-log-placeholder">Waiting for camera...</span>
+                        <div class="motion-log-entry motion-log-system">
+                            <span class="motion-log-msg">External stream connection stable.</span>
+                        </div>
                     </div>
-                    <canvas id="motionCanvas" style="display:none;"></canvas>
                 </div>
             </div>
         </div>
@@ -87,118 +87,5 @@
 </div>
 
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
-<script>
-// ---- MOTION DETECTION ENGINE (Live CCTV) ----
-const MOTION_THRESHOLD = 30;
-const PIXEL_DIFF_THRESHOLD = 25;
-
-let prevFrame = null;
-let motionActive = false;
-let motionTimeout = null;
-const motionLog = [];
-const MAX_LOG = 30;
-
-function getTimestamp() {
-    return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-}
-
-function appendMotionLog(message, type) {
-    const area = document.getElementById('motionLogArea');
-    if (!area) return;
-    const placeholder = area.querySelector('.motion-log-placeholder');
-    if (placeholder) placeholder.remove();
-
-    const entry = document.createElement('div');
-    entry.className = `motion-log-entry motion-log-${type}`;
-    entry.innerHTML = `<span class="motion-log-time">${getTimestamp()}</span><span class="motion-log-msg">${message}</span>`;
-    area.insertBefore(entry, area.firstChild);
-
-    while (area.children.length > MAX_LOG) area.removeChild(area.lastChild);
-}
-
-function setMotionState(detected) {
-    const dot = document.getElementById('motionDot');
-    const label = document.getElementById('motionLabel');
-    const badge = document.getElementById('motionBadge');
-    const widget = document.getElementById('motionWidget');
-
-    if (detected && !motionActive) {
-        motionActive = true;
-        dot.className = 'motion-icon-dot motion-detected';
-        label.textContent = 'MOTION DETECTED';
-        label.className = 'motion-label motion-label-alert';
-        badge.textContent = 'ALERT';
-        badge.className = 'motion-badge motion-badge-alert';
-        widget.classList.add('motion-widget-alert');
-        appendMotionLog('Motion detected in frame', 'alert');
-    }
-    if (detected && motionTimeout) { clearTimeout(motionTimeout); motionTimeout = null; }
-    if (!detected && motionActive && !motionTimeout) {
-        motionTimeout = setTimeout(() => {
-            motionActive = false;
-            motionTimeout = null;
-            dot.className = 'motion-icon-dot motion-clear';
-            label.textContent = 'NO MOTION DETECTED';
-            label.className = 'motion-label motion-label-clear';
-            badge.textContent = 'CLEAR';
-            badge.className = 'motion-badge motion-badge-clear';
-            widget.classList.remove('motion-widget-alert');
-            appendMotionLog('Area clear — no motion', 'clear');
-        }, 1500);
-    }
-}
-
-function analyzeFrame(video, canvas) {
-    const ctx = canvas.getContext('2d');
-    canvas.width = 160; canvas.height = 90;
-    ctx.drawImage(video, 0, 0, 160, 90);
-    const frame = ctx.getImageData(0, 0, 160, 90);
-    if (!prevFrame) { prevFrame = frame; return false; }
-    let diffPixels = 0;
-    for (let i = 0; i < frame.data.length; i += 4) {
-        const avg = (Math.abs(frame.data[i]-prevFrame.data[i]) + Math.abs(frame.data[i+1]-prevFrame.data[i+1]) + Math.abs(frame.data[i+2]-prevFrame.data[i+2])) / 3;
-        if (avg > PIXEL_DIFF_THRESHOLD) diffPixels++;
-    }
-    prevFrame = frame;
-    return (diffPixels / (160 * 90) * 100) > MOTION_THRESHOLD;
-}
-
-async function startCamera() {
-    const dot = document.getElementById('motionDot');
-    const label = document.getElementById('motionLabel');
-    const badge = document.getElementById('motionBadge');
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
-        const video = document.getElementById("localVideo");
-        video.srcObject = stream;
-        document.getElementById("status-text").textContent = "ONLINE";
-        document.getElementById("cam-status").textContent = "";
-
-        video.addEventListener('loadeddata', () => {
-            dot.className = 'motion-icon-dot motion-clear';
-            label.textContent = 'NO MOTION DETECTED';
-            label.className = 'motion-label motion-label-clear';
-            badge.textContent = 'CLEAR';
-            badge.className = 'motion-badge motion-badge-clear';
-            appendMotionLog('Motion detection system online', 'system');
-
-            const canvas = document.getElementById('motionCanvas');
-            setInterval(() => {
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    setMotionState(analyzeFrame(video, canvas));
-                }
-            }, 200);
-        });
-    } catch (err) {
-        document.getElementById("cam-status").textContent = "Camera access denied or unavailable.";
-        document.getElementById("status-text").textContent = "OFFLINE";
-        document.getElementById("status-text").className = "red-text";
-        label.textContent = 'CAMERA UNAVAILABLE';
-        badge.textContent = 'OFFLINE';
-        appendMotionLog('Camera access denied', 'system');
-    }
-}
-startCamera();
-</script>
 </body>
 </html>

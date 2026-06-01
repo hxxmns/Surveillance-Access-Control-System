@@ -2,53 +2,39 @@ from flask import Flask, render_template, request, redirect, session, Response, 
 from database import get_connection
 from datetime import datetime, timedelta
 import uuid
-import threading
+import os
+import requests
 import blocker
 import detector
-import os
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
+CCTV_STREAM_URL = os.getenv("CCTV_STREAM_URL")
 
-latest_frame = None
-frame_lock = threading.Lock()
 
 def get_device_id():
-
     device_id = request.cookies.get("device_id")
-
     if not device_id:
         device_id = str(uuid.uuid4())
-
     return device_id
 
 
 def save_log(device_id, event_type, status):
-
     conn = get_connection()
     cursor = conn.cursor()
-
     philippines_time = datetime.utcnow() + timedelta(hours=8)
 
     try:
         cursor.execute("""
-            INSERT INTO security_logs
-            (device_id, event_type, status, created_at)
+            INSERT INTO security_logs 
+            (device_id, event_type, status, created_at) 
             VALUES (%s, %s, %s, %s)
-        """, (
-            device_id,
-            event_type,
-            status,
-            philippines_time
-        ))
-
+        """, (device_id, event_type, status, philippines_time))
         conn.commit()
-
     except:
         conn.rollback()
-
     finally:
         conn.close()
 
@@ -75,8 +61,8 @@ def login():
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT username, password
-            FROM users
+            SELECT username, password 
+            FROM users 
             WHERE username=%s
         """, (username,))
 
@@ -88,7 +74,6 @@ def login():
             session["user"] = username
 
             detector.clear_failed_attempts(device_id)
-
             save_log(device_id, f"Login Success: {username}", "SUCCESS")
 
             response = make_response(redirect("/dashboard"))
@@ -147,24 +132,9 @@ def login():
     )
     return response
 
-    response = make_response(
-        render_template("login.html")
-    )
-
-    response.set_cookie(
-        "device_id",
-        device_id,
-        max_age=60 * 60 * 24 * 365,
-        httponly=True,
-        samesite="Lax"
-    )
-
-    return response
-
 
 @app.route("/dashboard")
 def dashboard():
-
     if "user" not in session:
         return redirect("/")
 
@@ -172,31 +142,31 @@ def dashboard():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='SUCCESS'
+        SELECT COUNT(*) 
+        FROM security_logs 
+        WHERE status='SUCCESS' 
         AND created_at >= CURRENT_DATE
     """)
     today_access = cursor.fetchone()[0]
 
     cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='FAILED'
+        SELECT COUNT(*) 
+        FROM security_logs 
+        WHERE status='FAILED' 
         AND created_at >= CURRENT_DATE
     """)
     unauthorized = cursor.fetchone()[0]
 
     cursor.execute("""
-        SELECT COUNT(*)
+        SELECT COUNT(*) 
         FROM blocked_devices
     """)
     unique_attackers = cursor.fetchone()[0]
 
     cursor.execute("""
-        SELECT device_id, event_type, status, created_at
-        FROM security_logs
-        ORDER BY created_at DESC
+        SELECT device_id, event_type, status, created_at 
+        FROM security_logs 
+        ORDER BY created_at DESC 
         LIMIT 7
     """)
     recent_alerts = cursor.fetchall()
@@ -215,10 +185,8 @@ def dashboard():
 
 @app.route("/live-cctv")
 def live_cctv():
-
     if "user" not in session:
         return redirect("/")
-
     return render_template(
         "live_cctv.html",
         user=session["user"]
@@ -227,7 +195,6 @@ def live_cctv():
 
 @app.route("/threat-logs")
 def threat_logs():
-
     if "user" not in session:
         return redirect("/")
 
@@ -235,14 +202,12 @@ def threat_logs():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT device_id, event_type, status, created_at
-        FROM security_logs
-        ORDER BY created_at DESC
+        SELECT device_id, event_type, status, created_at 
+        FROM security_logs 
+        ORDER BY created_at DESC 
         LIMIT 50
     """)
-
     logs = cursor.fetchall()
-
     conn.close()
 
     return render_template(
@@ -254,7 +219,6 @@ def threat_logs():
 
 @app.route("/analytics")
 def analytics():
-
     if "user" not in session:
         return redirect("/")
 
@@ -262,22 +226,17 @@ def analytics():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='SUCCESS'
+        SELECT COUNT(*) FROM security_logs WHERE status='SUCCESS'
     """)
     success_count = cursor.fetchone()[0]
 
     cursor.execute("""
-        SELECT COUNT(*)
-        FROM security_logs
-        WHERE status='FAILED'
+        SELECT COUNT(*) FROM security_logs WHERE status='FAILED'
     """)
     failed_count = cursor.fetchone()[0]
 
     cursor.execute("""
-        SELECT COUNT(*)
-        FROM blocked_devices
+        SELECT COUNT(*) FROM blocked_devices
     """)
     blocked_count = cursor.fetchone()[0]
 
@@ -292,47 +251,35 @@ def analytics():
     )
 
 
-@app.route("/upload_frame", methods=["POST"])
-def upload_frame():
-    global latest_frame
-    data = request.data
-    with frame_lock:
-        latest_frame = data
-    return "OK", 200
-
-
 def generate_frames():
-    global latest_frame
-    while True:
-        with frame_lock:
-            frame = latest_frame
-        if frame is None:
-            continue
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    """Streams chunks directly from the environment-configured CCTV URL."""
+    if not CCTV_STREAM_URL:
+        print("Error: CCTV_STREAM_URL environment variable is not configured.")
+        return
+
+    try:
+        response = requests.get(CCTV_STREAM_URL, stream=True, timeout=10)
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                yield chunk
+    except Exception as e:
+        print(f"Error streaming from CCTV source: {e}")
 
 
 @app.route("/video_feed")
 def video_feed():
     if "user" not in session:
         return "Unauthorized", 403
+    
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route("/logout")
 def logout():
-
     session.clear()
+    return redirect("/")
 
-    response = make_response(
-        redirect("/")
-    )
-
-    return response
-
-
-import atexit
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)

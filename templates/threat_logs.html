@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -75,7 +75,7 @@
                                 <span class="badge critical" style="min-width: 15px; height: 15px; padding: 0; border-radius: 50%;"></span>
                             {% elif log[2] %}
                                 <span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'critical' }}">{{ log[2] }}</span>
-                            {% elif log[2] %}
+                            {% endif %}
                         </td>
                         
                         <td>{{ log[3].strftime('%b %d, %Y | %I:%M:%S %p') if log[3] else 'N/A' }}</td>

@@ -102,20 +102,24 @@
                 <div class="alerts-list">
                     {% for log in recent_alerts %}
                     <div class="alert-item">
-                        <div class="status-indicator {{ 'green' if log[2] == 'SUCCESS' else 'yellow' }}"></div>
+                        <div class="status-indicator {{ 'green' if log[2] == 'SUCCESS' (else 'RED_LOGOUT' else 'yellow') }}"></div>
                         <div class="alert-content">
                             <div class="alert-title-row">
                                 <h4>{{ log[1] }}</h4>
-                                <span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'warn' }}">
-                                    {% if log[2] == 'SUCCESS' %}
-                                        Success
-                                    {% else %}
-                                        Warning 
-                                        {% if 'Attempt' in log[1] %}
-                                            ({{ log[1].split('Attempt ')[1].split(' ')[0] }}/3)
+                                {% if log[2] == 'RED_LOGOUT' %}
+                                    <span class="badge critical" style="min-width: 15px; height: 15px; padding: 0; border-radius: 50%;"></span>
+                                {% elif log[2] %}
+                                    <span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'warn' }}">
+                                        {% if log[2] == 'SUCCESS' %}
+                                            Success
+                                        {% else %}
+                                            Warning 
+                                            {% if 'Attempt' in log[1] %}
+                                                ({{ log[1].split('Attempt ')[1].split(' ')[0] }}/3)
+                                            {% endif %}
                                         {% endif %}
-                                    {% endif %}
-                                </span>
+                                    </span>
+                                {% endif %}
                             </div>
                             <p class="alert-sub">{{ user | default('admin') }} • {{ log[0] }}</p>
                         </div>

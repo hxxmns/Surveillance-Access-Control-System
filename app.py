@@ -280,8 +280,22 @@ def video_feed():
 
     return Response(generate_frames(), mimetype=content_type)
 
+@app.route("/log-window-close", methods=["POST"])
+def log_window_close():
+    if "user" not in session:
+        return "", 204
+    device_id = request.cookies.get("device_id", "unknown")
+    username = session.get("user", "unknown")
+    save_log(device_id, f"Window Closed: {username}", "RED_LOGOUT")
+    session.clear()
+    return "", 204
+
+
 @app.route("/logout")
 def logout():
+    device_id = request.cookies.get("device_id", "unknown")
+    username = session.get("user", "unknown")
+    save_log(device_id, f"Logout: {username}", "SUCCESS")
     session.clear()
     return redirect("/")
 

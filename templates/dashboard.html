@@ -120,8 +120,9 @@
                             <p class="alert-sub">{{ user | default('admin') }} • {{ log[0] }}</p>
                         </div>
                         <div class="alert-time-col">
-                            <span>{{ log[3].strftime('%H:%M:%S') if log[3] else '18:00:52' }}</span>
-                        </div>
+                            <span>{{ log[3].strftime('%b %d, %Y') if log[3] else '' }}</span>
+                            <span>{{ log[3].strftime('%I:%M:%S %p') if log[3] else '18:00:52' }}</span>
+                       </div>
                     </div>
                     {% endfor %}
                 </div>

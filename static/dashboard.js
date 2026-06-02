@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-window.addEventListener('pagehide', function (event) {
+window.addEventListener('beforerunload', function (event) {
     if (navigator.sendBeacon) {
         navigator.sendBeacon('/logout-beacon');
     }

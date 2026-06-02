@@ -284,24 +284,6 @@ def logout():
     return redirect("/")
 
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-
 @app.route("/logout-beacon", methods=["POST"])
 def logout_beacon():
 

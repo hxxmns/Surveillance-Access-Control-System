@@ -279,6 +279,10 @@ def video_feed():
 
 @app.route("/logout")
 def logout():
+    if "user" in session:
+        device_id = get_device_id()
+        save_log(device_id, "Logout", "RED_LOGOUT")
+        
     session.clear()
     return redirect("/")
 
@@ -286,11 +290,8 @@ def logout():
 @app.route("/logout-beacon", methods=["POST"])
 def logout_beacon():
     if "user" in session:
-        username = session["user"]
         device_id = get_device_id()
-        
-     
-        save_log(device_id, "Logout", "FAILED")
+        save_log(device_id, "Logout", "RED_LOGOUT")
         
         session.clear()
         

@@ -168,7 +168,7 @@ def dashboard():
     cursor.execute("""
         SELECT device_id, event_type, status, created_at 
         FROM security_logs 
-        ORDER BY created_at ASC 
+        ORDER BY created_at DESC 
         LIMIT 7
     """)
     recent_alerts = cursor.fetchall()

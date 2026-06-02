@@ -283,6 +283,18 @@ def logout():
     session.clear()
     return redirect("/")
 
+@app.route("/logout-beacon", methods=["POST"])
+def logout_beacon():
+    if "user" in session:
+        username = session["user"]
+        device_id = get_device_id()
+        
+        # Save the log entry to your PostgreSQL database
+        save_log(device_id, f"Automatic Logout (Browser Closed): {username}", "SUCCESS")
+        
+        session.clear()
+        
+    return "", 204
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)

@@ -290,15 +290,25 @@ def logout():
     return redirect("/")
 
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
 @app.route("/logout-beacon", methods=["POST"])
 def logout_beacon():
-    if "user" in session:
-        username = session["user"]
-        device_id = get_device_id()
-        
-        save_log(device_id, "Logout", "FAILED")
-        
-        session.clear()
+    try:
+        if "user" in session:
+            username = session["user"]
+            
+            device_id = request.cookies.get("device_id", "UNKNOWN_DEVICE")
+            
+            save_log(device_id, "Logout", "FAILED")
+            
+            session.clear()
+    except Exception as e:
+        print(f"[BEACON ERROR] Safety triggered: {e}")
         
     return "", 204
 

@@ -7,12 +7,35 @@ import requests
 import blocker
 import detector
 import time
+import json
+import queue
+import threading
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
 CCTV_STREAM_URL = os.getenv("CCTV_STREAM_URL")
+
+# ---------------------------------------------------------------------------
+# SSE broadcaster — thread-safe fan-out to all connected clients
+# ---------------------------------------------------------------------------
+_sse_lock = threading.Lock()
+_sse_clients: list[queue.Queue] = []
+
+
+def _broadcast(event_type: str, data: dict):
+    """Push a JSON event to every connected SSE client."""
+    payload = f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
+    with _sse_lock:
+        dead = []
+        for q in _sse_clients:
+            try:
+                q.put_nowait(payload)
+            except queue.Full:
+                dead.append(q)
+        for q in dead:
+            _sse_clients.remove(q)
 
 
 def get_device_id():
@@ -34,10 +57,59 @@ def save_log(device_id, event_type, status):
             VALUES (%s, %s, %s, %s)
         """, (device_id, event_type, status, philippines_time))
         conn.commit()
+
+        # Broadcast the new log entry to all SSE subscribers
+        _broadcast("new_log", {
+            "device_id": device_id,
+            "event_type": event_type,
+            "status": status,
+            "created_at": philippines_time.strftime("%b %d, %Y | %I:%M:%S %p"),
+            "date_only": philippines_time.strftime("%b %d, %Y"),
+            "time_only": philippines_time.strftime("%I:%M:%S %p"),
+        })
+
+        # Also broadcast updated summary counts for the dashboard
+        _broadcast_counts(conn)
+
     except:
         conn.rollback()
     finally:
         conn.close()
+
+
+def _broadcast_counts(existing_conn=None):
+    """Fetch live counts and push them to all SSE clients."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM security_logs WHERE status='SUCCESS' AND created_at >= CURRENT_DATE")
+        today_access = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM security_logs WHERE status='FAILED' AND created_at >= CURRENT_DATE")
+        unauthorized = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM blocked_devices")
+        blocked = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM security_logs WHERE status='SUCCESS'")
+        success_all = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM security_logs WHERE status='FAILED'")
+        failed_all = cursor.fetchone()[0]
+
+        conn.close()
+
+        _broadcast("counts", {
+            "today_access": today_access,
+            "unauthorized": unauthorized,
+            "unique_attackers": blocked,
+            "success_count": success_all,
+            "failed_count": failed_all,
+            "blocked_count": blocked,
+        })
+    except Exception as e:
+        print(f"[SSE] count broadcast error: {e}")
 
 
 from werkzeug.security import check_password_hash
@@ -252,6 +324,49 @@ def analytics():
     )
 
 
+# ---------------------------------------------------------------------------
+# SSE endpoint — clients connect here and receive a stream of events
+# ---------------------------------------------------------------------------
+@app.route("/stream")
+def stream():
+    if "user" not in session:
+        return "Unauthorized", 403
+
+    client_queue: queue.Queue = queue.Queue(maxsize=50)
+
+    with _sse_lock:
+        _sse_clients.append(client_queue)
+
+    def event_stream():
+        # Send a heartbeat immediately so the browser knows the connection is live
+        yield ": connected\n\n"
+        try:
+            while True:
+                try:
+                    # Block up to 20 s, then send a keepalive comment
+                    msg = client_queue.get(timeout=20)
+                    yield msg
+                except queue.Empty:
+                    yield ": keepalive\n\n"
+        except GeneratorExit:
+            pass
+        finally:
+            with _sse_lock:
+                try:
+                    _sse_clients.remove(client_queue)
+                except ValueError:
+                    pass
+
+    return Response(
+        event_stream(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",   # disable nginx buffering if behind proxy
+        }
+    )
+
+
 def generate_frames():
     if not CCTV_STREAM_URL:
         print("Error: CCTV_STREAM_URL is not set.")
@@ -271,7 +386,6 @@ def video_feed():
     if "user" not in session:
         return "Unauthorized", 403
 
-    # Get the content-type directly from the camera so it passes through correctly
     try:
         head = requests.head(CCTV_STREAM_URL, timeout=5)
         content_type = head.headers.get('Content-Type', 'multipart/x-mixed-replace; boundary=frame')
@@ -279,6 +393,7 @@ def video_feed():
         content_type = 'multipart/x-mixed-replace; boundary=frame'
 
     return Response(generate_frames(), mimetype=content_type)
+
 
 @app.route("/log-window-close", methods=["POST"])
 def log_window_close():

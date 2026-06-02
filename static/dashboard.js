@@ -1,3 +1,7 @@
+/* --- WINDOW / TAB CLOSE LOGGER --- */
+window.addEventListener("beforeunload", function () {
+    navigator.sendBeacon("/log-window-close");
+});
 /* --- REVISED LIVE CLOCK (Sidebar) --- */
 function updateClock() {
     const clock = document.getElementById("live-clock");

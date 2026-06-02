@@ -102,10 +102,11 @@
                 <div class="alerts-list">
                     {% for log in recent_alerts %}
                     <div class="alert-item">
-                        <div class="status-indicator {{ 'green' if log[2] == 'SUCCESS' (else 'RED_LOGOUT' else 'yellow') }}"></div>
+                        <div class="status-indicator {{ 'green' if log[2] == 'SUCCESS' else ('red' if log[2] == 'RED_LOGOUT' else 'yellow') }}"></div>
                         <div class="alert-content">
                             <div class="alert-title-row">
                                 <h4>{{ log[1] }}</h4>
+                                
                                 {% if log[2] == 'RED_LOGOUT' %}
                                     <span class="badge critical" style="min-width: 15px; height: 15px; padding: 0; border-radius: 50%;"></span>
                                 {% elif log[2] %}

@@ -70,7 +70,14 @@
                     <tr class="log-row" data-status="{{ log[2] }}">
                         <td class="text-clip" style="color: var(--text-muted);">{{ log[0] }}</td>
                         <td>{{ log[1] }}</td>
-                        <td><span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'critical' }}">{{ log[2] }}</span></td>
+                        <td>
+                            {% if log[2] == 'RED_LOGOUT' %}
+                                <span class="badge critical" style="min-width: 15px; height: 15px; padding: 0; border-radius: 50%;"></span>
+                            {% elif log[2] %}
+                                <span class="badge {{ 'ok' if log[2] == 'SUCCESS' else 'critical' }}">{{ log[2] }}</span>
+                            {% elif log[2] %}
+                        </td>
+                        
                         <td>{{ log[3].strftime('%b %d, %Y | %I:%M:%S %p') if log[3] else 'N/A' }}</td>
                     </tr>
                     {% endfor %}

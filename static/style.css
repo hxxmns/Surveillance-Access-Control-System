@@ -363,3 +363,29 @@ input[type="checkbox"].chart-checkbox.failed:checked { background-color: var(--r
 .motion-log-alert .motion-log-msg { color: var(--red); font-weight: 600; }
 .motion-log-clear .motion-log-msg { color: var(--green); }
 .motion-log-system .motion-log-msg { color: var(--text-muted); font-style: italic; }
+
+/* --- SSE Live-update highlight --- */
+@keyframes sse-flash {
+    0%   { background: rgba(63, 185, 80, 0.18); border-left: 3px solid var(--green); }
+    100% { background: transparent; border-left: 3px solid transparent; }
+}
+
+.alert-item.sse-new,
+.log-row.sse-new td:first-child {
+    animation: sse-flash 1.5s ease-out forwards;
+}
+
+.log-row.sse-new {
+    animation: sse-flash 1.5s ease-out forwards;
+}
+
+/* Live indicator pulse on SSE connect */
+.sse-connected-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+    margin-left: 6px;
+    vertical-align: middle;
+}

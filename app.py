@@ -284,17 +284,23 @@ def logout():
     return redirect("/")
 
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
 @app.route("/logout-beacon", methods=["POST"])
 def logout_beacon():
     if "user" in session:
         username = session["user"]
         device_id = get_device_id()
         
-        save_log(device_id, f"Logout: {username} (Browser Closed)", "FAILED")
+        save_log(device_id, "Logout", "FAILED")
         
         session.clear()
         
-    return "", 204 
+    return "", 204
 
 
 if __name__ == "__main__":
